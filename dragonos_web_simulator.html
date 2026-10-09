@@ -1,0 +1,1510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DragonOS Web Simulator</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter & JetBrains Mono -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        * {
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            background-color: #050505;
+            color: #ffffff;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* Glassmorphism Styles */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.36);
+        }
+
+        .glass-panel-dark {
+            background: rgba(15, 23, 42, 0.78);
+            backdrop-filter: blur(28px) saturate(200%);
+            -webkit-backdrop-filter: blur(28px) saturate(200%);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 16px 40px 0 rgba(0, 0, 0, 0.6);
+        }
+
+        .glass-menu-light {
+            background: rgba(255, 255, 255, 0.82) !important;
+            color: #0f172a !important;
+            border: 1px solid rgba(0, 0, 0, 0.15) !important;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2) !important;
+        }
+
+        .glass-dock {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(25px) saturate(210%);
+            -webkit-backdrop-filter: blur(25px) saturate(210%);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            width: max-content;
+        }
+
+        .glass-topbar {
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        .glass-topbar.dark-text {
+            background: rgba(255, 255, 255, 0.45);
+            color: #0f172a;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+        }
+
+        .glass-window {
+            background: rgba(18, 24, 38, 0.75);
+            backdrop-filter: blur(28px) saturate(190%);
+            -webkit-backdrop-filter: blur(28px) saturate(190%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.1);
+        }
+
+        .glass-window-light {
+            background: rgba(255, 255, 255, 0.85) !important;
+            color: #0f172a !important;
+            border: 1px solid rgba(0, 0, 0, 0.12) !important;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.2) !important;
+        }
+
+        /* Fixed dock item hover scaling */
+        .dock-item {
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transform-origin: bottom center;
+        }
+        .dock-item:hover {
+            transform: scale(1.2) translateY(-6px);
+        }
+
+        /* Hide cursor during boot */
+        .cursor-none-boot {
+            cursor: none !important;
+        }
+
+        /* Staggered Hello Text Letter Animations */
+        @keyframes letterSlideUp {
+            0% {
+                opacity: 0;
+                transform: translateY(100px) rotate(10deg);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) rotate(0deg);
+            }
+        }
+
+        .animated-letter {
+            display: inline-block;
+            opacity: 0;
+            animation: letterSlideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-10px); }
+            40%, 80% { transform: translateX(10px); }
+        }
+
+        .animate-shake {
+            animation: shake 0.4s ease-in-out;
+        }
+
+        /* Context Menu Style */
+        .context-menu {
+            position: fixed;
+            z-index: 10000;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 0, 0, 0.15);
+            border-radius: 12px;
+            padding: 6px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            color: #0f172a;
+            font-size: 12px;
+            font-weight: 500;
+            min-width: 140px;
+        }
+
+        /* Custom Scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.4);
+        }
+    </style>
+</head>
+<body class="relative h-screen w-screen overflow-hidden select-none bg-black">
+
+    <!-- Wallpaper Layer -->
+    <div id="wallpaper-container" class="absolute inset-0 bg-cover bg-center transition-all duration-700 scale-100" style="background-image: url('Yosemite_Valley_c466b706-6bcf-4985-941a-a7abd2d1cd09.jpg');"></div>
+
+    <!-- Boot Screen Container -->
+    <div id="boot-screen" class="absolute inset-0 z-50 bg-black/80 backdrop-blur-3xl flex flex-col items-center justify-center cursor-none-boot transition-opacity duration-700">
+        <div class="relative flex flex-col items-center">
+            <!-- White Dragon Logo -->
+            <img id="boot-logo" src="IMG_6762.PNG" alt="DragonOS" class="w-36 h-36 object-contain mb-8 filter drop-shadow-[0_0_20px_rgba(255,255,255,0.4)]">
+            <!-- Loading Spinner -->
+            <div class="w-10 h-10 border-4 border-white/20 border-t-white rounded-full animate-spin"></div>
+        </div>
+    </div>
+
+    <!-- Recovery Screen -->
+    <div id="recovery-screen" class="absolute inset-0 z-50 bg-slate-950/95 backdrop-blur-3xl hidden flex flex-col items-center justify-center p-6 text-white">
+        <div class="w-full max-w-md glass-panel-dark p-8 rounded-3xl border border-red-500/30 shadow-2xl flex flex-col items-center">
+            <div class="w-16 h-16 rounded-2xl bg-red-500/20 border border-red-500/40 flex items-center justify-center text-red-400 text-3xl mb-4">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h2 class="text-2xl font-bold tracking-wide mb-1">DragonOS Recovery</h2>
+            <p class="text-xs text-white/60 mb-6 text-center">System Diagnostics & Reset Options</p>
+
+            <div class="w-full space-y-4">
+                <button onclick="recoveryClearPassword()" class="w-full py-3 px-4 bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-500/30 rounded-2xl text-yellow-200 text-xs font-semibold flex items-center justify-between transition">
+                    <span><i class="fa-solid fa-key mr-2"></i>Remove Password</span>
+                    <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                </button>
+
+                <button onclick="recoveryFactoryReset()" class="w-full py-3 px-4 bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 rounded-2xl text-red-300 text-xs font-semibold flex items-center justify-between transition">
+                    <span><i class="fa-solid fa-trash-can mr-2"></i>Factory Reset OS</span>
+                    <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                </button>
+
+                <button onclick="exitRecoveryAndReboot()" class="w-full py-3 bg-white/10 hover:bg-white/20 rounded-2xl text-white text-xs font-bold tracking-wider uppercase transition mt-2">
+                    Reboot DragonOS
+                </button>
+            </div>
+            <p id="recovery-msg" class="text-xs text-green-400 mt-4 opacity-0 transition-opacity">Action completed!</p>
+        </div>
+    </div>
+
+    <!-- First Time Setup Wizard ("Hello" Screen) -->
+    <div id="setup-wizard" class="absolute inset-0 z-40 backdrop-blur-3xl bg-black/40 flex flex-col items-center justify-center p-6 hidden">
+        
+        <!-- Step 0: Animated "Hello" -->
+        <div id="setup-step-0" class="flex flex-col items-center justify-center text-center">
+            <h1 class="text-8xl font-black text-white tracking-wider mb-6 flex space-x-1" id="hello-container">
+                <!-- Injected JS staggered letters -->
+            </h1>
+            <p class="text-xl text-white/80 font-light mb-10 tracking-wide">Welcome to your new DragonOS environment</p>
+            <button onclick="nextSetupStep(1)" class="px-8 py-4 rounded-2xl bg-white text-slate-950 font-bold text-lg hover:scale-105 active:scale-95 transition shadow-2xl flex items-center space-x-3">
+                <span>Get Started</span>
+                <i class="fa-solid fa-arrow-right text-sm"></i>
+            </button>
+        </div>
+
+        <!-- Step 1: Name Your Account -->
+        <div id="setup-step-1" class="hidden w-full max-w-md glass-panel-dark p-8 rounded-3xl border border-white/20 flex flex-col items-center">
+            <h2 class="text-2xl font-bold text-white mb-2">Account Name</h2>
+            <p class="text-xs text-white/60 mb-6">Enter your preferred display name (Optional)</p>
+
+            <input type="text" id="setup-username-input" placeholder="Dragon User" 
+                   class="w-full px-5 py-3 rounded-2xl bg-black/40 text-center text-white placeholder-white/40 border border-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm mb-8">
+
+            <div class="flex justify-between w-full">
+                <button onclick="nextSetupStep(0)" class="px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold">Back</button>
+                <button onclick="nextSetupStep(2)" class="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold">Continue</button>
+            </div>
+        </div>
+
+        <!-- Step 2: Choose Wallpaper -->
+        <div id="setup-step-2" class="hidden w-full max-w-xl glass-panel-dark p-8 rounded-3xl border border-white/20 flex flex-col items-center">
+            <h2 class="text-2xl font-bold text-white mb-2">Choose Your Wallpaper</h2>
+            <p class="text-xs text-white/60 mb-6">Select a backdrop or upload a custom image</p>
+
+            <div class="grid grid-cols-2 gap-4 w-full mb-6" id="setup-wallpaper-grid">
+                <!-- Injected Wallpapers -->
+            </div>
+
+            <div class="w-full mb-8">
+                <label class="block text-xs font-semibold text-white/80 mb-2">Upload Custom Image</label>
+                <input type="file" accept="image/*" onchange="handleSetupCustomWallpaper(event)" class="text-xs text-white/70 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500 cursor-pointer">
+            </div>
+
+            <div class="flex justify-between w-full">
+                <button onclick="nextSetupStep(1)" class="px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold">Back</button>
+                <button onclick="nextSetupStep(3)" class="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold">Continue</button>
+            </div>
+        </div>
+
+        <!-- Step 3: System Theme -->
+        <div id="setup-step-3" class="hidden w-full max-w-md glass-panel-dark p-8 rounded-3xl border border-white/20 flex flex-col items-center">
+            <h2 class="text-2xl font-bold text-white mb-2">System Theme</h2>
+            <p class="text-xs text-white/60 mb-8">Choose your preferred glass theme (Light Mode Default)</p>
+
+            <div class="grid grid-cols-2 gap-4 w-full mb-8">
+                <button id="setup-theme-light" onclick="selectSetupTheme(false)" class="p-5 rounded-2xl bg-white/90 border-2 border-indigo-500 flex flex-col items-center space-y-3">
+                    <i class="fa-solid fa-sun text-3xl text-amber-500"></i>
+                    <span class="text-xs font-bold text-slate-900">Light Glass</span>
+                </button>
+                <button id="setup-theme-dark" onclick="selectSetupTheme(true)" class="p-5 rounded-2xl bg-slate-900 border-2 border-transparent flex flex-col items-center space-y-3">
+                    <i class="fa-solid fa-moon text-3xl text-indigo-400"></i>
+                    <span class="text-xs font-bold text-white">Dark Glass</span>
+                </button>
+            </div>
+
+            <div class="flex justify-between w-full">
+                <button onclick="nextSetupStep(2)" class="px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold">Back</button>
+                <button onclick="nextSetupStep(4)" class="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold">Continue</button>
+            </div>
+        </div>
+
+        <!-- Step 4: Password Setup -->
+        <div id="setup-step-4" class="hidden w-full max-w-md glass-panel-dark p-8 rounded-3xl border border-white/20 flex flex-col items-center">
+            <h2 class="text-2xl font-bold text-white mb-2">Protect DragonOS</h2>
+            <p class="text-xs text-white/60 mb-6">Create a password or skip for instant unlock</p>
+
+            <div class="w-full mb-8">
+                <input type="password" id="setup-pwd-input" placeholder="Enter password (optional)" 
+                       class="w-full px-5 py-3 rounded-2xl bg-black/40 text-center text-white placeholder-white/40 border border-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm tracking-widest">
+            </div>
+
+            <div class="flex items-center justify-between w-full">
+                <button onclick="nextSetupStep(3)" class="px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold">Back</button>
+                <div class="flex space-x-2">
+                    <button onclick="finishSetup(true)" class="px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 text-xs font-semibold">Skip</button>
+                    <button onclick="finishSetup(false)" class="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold">Complete Setup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lock Screen -->
+    <div id="lock-screen" onclick="handleLockScreenClick(event)" class="absolute inset-0 z-30 backdrop-blur-3xl bg-black/30 flex flex-col items-center justify-between py-20 transition-transform duration-700 cubic-bezier(0.16, 1, 0.3, 1) transform translate-y-0 hidden cursor-pointer">
+        <!-- Clock -->
+        <div class="flex flex-col items-center mt-12">
+            <h1 id="lock-time" class="text-8xl font-extralight tracking-tight text-white drop-shadow-md">12:00</h1>
+            <p id="lock-date" class="text-xl font-medium text-white/90 mt-2 drop-shadow">Thursday, October 8</p>
+        </div>
+
+        <!-- Password Entry -->
+        <div id="password-container" onclick="event.stopPropagation()" class="w-full max-w-sm px-6 flex flex-col items-center transition-all duration-300 hidden">
+            <div class="w-16 h-16 rounded-full glass-panel flex items-center justify-center mb-4 text-2xl text-white shadow-inner border border-white/30">
+                <i class="fa-solid fa-user-shield"></i>
+            </div>
+            <p id="lock-user-disp" class="text-white font-medium mb-3">Dragon User</p>
+            <div class="relative w-full">
+                <input type="password" id="lock-password-input" placeholder="Enter Password" 
+                       onkeydown="if(event.key==='Enter') submitPassword()"
+                       class="w-full px-5 py-3 rounded-2xl glass-panel text-center text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-indigo-400 border border-white/30 text-lg tracking-widest">
+                <button onclick="submitPassword()" class="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-xl bg-white/20 hover:bg-white/40 flex items-center justify-center text-white transition">
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+            <p id="password-error" class="text-red-400 text-xs mt-2 opacity-0 transition-opacity">Incorrect password. Try again.</p>
+        </div>
+
+        <div></div>
+    </div>
+
+    <!-- Desktop Main Environment -->
+    <div id="desktop-environment" class="absolute inset-0 z-10 flex flex-col justify-between pointer-events-none opacity-0 transition-opacity duration-700">
+        
+        <!-- Top Navigation Bar -->
+        <div id="top-bar" class="pointer-events-auto h-8 px-4 flex items-center justify-between text-xs font-medium glass-topbar dark-text transition-all duration-500 transform -translate-y-full">
+            <!-- Left Side: Dragon OS Start Logo Button -->
+            <div class="flex items-center space-x-3">
+                <button id="start-btn" onclick="toggleLauncher(event)" class="flex items-center px-2 py-1 rounded-lg hover:bg-black/10 transition-all duration-200">
+                    <img id="top-bar-logo" src="IMG_6761 3.PNG" alt="Dragon" class="w-5 h-5 object-contain mr-1.5 transition-all">
+                    <span class="font-bold tracking-wide">DragonOS</span>
+                </button>
+                <div class="h-3 w-[1px] bg-black/20"></div>
+                <span id="active-app-name" class="opacity-80 font-normal">Desktop</span>
+            </div>
+
+            <!-- Right Side: System Info & Clock -->
+            <div class="flex items-center space-x-4">
+                <i class="fa-solid fa-wifi opacity-90 text-xs" title="Connected to DragonNet"></i>
+                
+                <!-- Battery Indicator -->
+                <div id="battery-status" class="flex items-center space-x-1.5" title="Battery Status">
+                    <span id="battery-level">100%</span>
+                    <i id="battery-icon" class="fa-solid fa-battery-full text-sm"></i>
+                </div>
+
+                <!-- Live Clock -->
+                <div id="top-clock" class="font-semibold tracking-wide">12:00 PM</div>
+            </div>
+        </div>
+
+        <!-- Workspace Container -->
+        <div id="window-container" class="relative flex-1 w-full h-full overflow-hidden pointer-events-auto">
+            <!-- Dynamic Draggable Windows appended here -->
+        </div>
+
+        <!-- Bottom Animated Dock -->
+        <div class="pointer-events-auto w-full flex justify-center pb-4 z-20">
+            <div id="dock" class="glass-dock px-4 py-2.5 rounded-3xl flex items-center space-x-3 transform translate-y-24 transition-transform duration-500 cubic-bezier(0.175, 0.885, 0.32, 1.275)">
+                <!-- Dock items rendered via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Launcher Menu -->
+    <div id="launcher-menu" onclick="event.stopPropagation()" class="fixed top-10 left-3 z-40 w-80 glass-menu-light rounded-2xl p-4 flex flex-col shadow-2xl transition-all duration-300 transform -translate-y-4 opacity-0 pointer-events-none">
+        <!-- Search Bar -->
+        <div class="relative w-full mb-4">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+            <input type="text" id="launcher-search" oninput="filterApps()" placeholder="Search apps..." 
+                   class="w-full pl-9 pr-3 py-2 rounded-xl bg-black/5 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-400 border border-black/10 text-xs">
+        </div>
+
+        <!-- Apps Grid -->
+        <div id="launcher-grid" class="grid grid-cols-3 gap-3 my-1 max-h-72 overflow-y-auto p-1">
+            <!-- Dynamically populated from installed apps -->
+        </div>
+
+        <!-- Bottom Action Controls -->
+        <div class="mt-3 pt-3 border-t border-black/10 flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <div class="w-7 h-7 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-[10px]" id="user-avatar-initials">
+                    DR
+                </div>
+                <span class="text-xs font-semibold text-slate-800" id="launcher-username">Dragon User</span>
+            </div>
+            <div class="flex items-center space-x-1.5">
+                <button onclick="lockSystem()" class="px-2.5 py-1.5 rounded-lg bg-black/5 hover:bg-black/10 text-slate-800 text-[11px] font-medium flex items-center space-x-1 transition">
+                    <i class="fa-solid fa-lock"></i>
+                    <span>Lock</span>
+                </button>
+                <button onclick="restartSystem()" class="px-2.5 py-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-700 border border-red-500/30 text-[11px] font-medium flex items-center space-x-1 transition">
+                    <i class="fa-solid fa-power-off"></i>
+                    <span>Restart</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Right-Click Context Menu -->
+    <div id="context-menu" class="context-menu hidden">
+        <div id="context-pin-btn" onclick="handleContextPin()" class="px-3 py-1.5 hover:bg-indigo-500 hover:text-white rounded-lg cursor-pointer flex items-center space-x-2">
+            <i class="fa-solid fa-thumbtack text-[10px]"></i>
+            <span id="context-pin-text">Pin to Dock</span>
+        </div>
+        <div id="context-delete-btn" onclick="handleContextDelete()" class="px-3 py-1.5 hover:bg-red-500 hover:text-white text-red-600 rounded-lg cursor-pointer flex items-center space-x-2 hidden">
+            <i class="fa-solid fa-trash text-[10px]"></i>
+            <span>Delete App</span>
+        </div>
+    </div>
+
+    <script>
+        // System Wallpapers
+        const WALLPAPERS = {
+            yosemite: {
+                name: 'Yosemite Park',
+                url: 'Yosemite_Valley_c466b706-6bcf-4985-941a-a7abd2d1cd09.jpg',
+                isDark: false
+            },
+            dusk: {
+                name: 'Mountain Dusk',
+                url: 'daniel-gomez-R4oUpT1n10c-unsplash.jpg',
+                isDark: true
+            },
+            alpine: {
+                name: 'Alpine Peak',
+                url: 'vadim-matei-RpY04izMaeo-unsplash.jpg',
+                isDark: false
+            },
+            night: {
+                name: 'Starry Night',
+                url: 'niklas-konig-xKY4ZHJDITA-unsplash.jpg',
+                isDark: true
+            }
+        };
+
+        const LOGOS = {
+            white: 'IMG_6762.PNG',
+            black: 'IMG_6761 3.PNG'
+        };
+
+        // System Core Apps
+        let systemApps = {
+            browser: { name: 'Web Browser', icon: 'fa-globe', gradient: 'from-blue-600 to-cyan-400', pinned: true, isCustom: false },
+            settings: { name: 'Settings', icon: 'fa-gear', gradient: 'from-slate-600 to-slate-400', pinned: true, isCustom: false },
+            calendar: { name: 'Calendar', icon: 'fa-calendar-days', gradient: 'from-red-500 to-orange-400', pinned: true, isCustom: false },
+            notes: { name: 'Dragon Notes', icon: 'fa-note-sticky', gradient: 'from-amber-400 to-amber-600', pinned: false, isCustom: false },
+            calculator: { name: 'Calculator', icon: 'fa-calculator', gradient: 'from-purple-600 to-pink-500', pinned: false, isCustom: false },
+            terminal: { name: 'Terminal', icon: 'fa-terminal', gradient: 'from-emerald-600 to-teal-500', pinned: false, isCustom: false },
+            getapps: { name: 'Get Apps', icon: 'fa-box-open', gradient: 'from-indigo-600 to-violet-500', pinned: true, isCustom: false }
+        };
+
+        // System State
+        let activeWallpaper = WALLPAPERS.yosemite;
+        let systemPassword = ''; 
+        let username = 'Dragon User';
+        let isDarkMode = false; 
+        let bootDurationSeconds = 3;
+        let isSetupCompleted = false;
+
+        let isLocked = true;
+        let highestZIndex = 10;
+        let openWindows = {};
+        let calendarDate = new Date();
+        let calcExpression = '';
+        let targetContextAppId = null;
+        let spaceHeldForRecovery = false;
+
+        window.onload = function() {
+            initBootSequence();
+            initClock();
+            initBattery();
+            initGlobalListeners();
+        };
+
+        // Boot & Recovery Sequence
+        function initBootSequence() {
+            spaceHeldForRecovery = false;
+            const bootScreen = document.getElementById('boot-screen');
+            bootScreen.classList.remove('hidden');
+            bootScreen.style.opacity = '1';
+
+            const recoveryKeyHandler = (e) => {
+                if (e.code === 'Space') {
+                    spaceHeldForRecovery = true;
+                }
+            };
+            window.addEventListener('keydown', recoveryKeyHandler);
+
+            setTimeout(() => {
+                window.removeEventListener('keydown', recoveryKeyHandler);
+                
+                if (spaceHeldForRecovery) {
+                    bootScreen.style.opacity = '0';
+                    setTimeout(() => {
+                        bootScreen.classList.add('hidden');
+                        document.getElementById('recovery-screen').classList.remove('hidden');
+                    }, 500);
+                } else {
+                    bootScreen.style.opacity = '0';
+                    setTimeout(() => {
+                        bootScreen.classList.add('hidden');
+                        if (!isSetupCompleted) {
+                            startSetupWizard();
+                        } else {
+                            showLockScreen();
+                        }
+                    }, 700);
+                }
+            }, bootDurationSeconds * 1000);
+        }
+
+        function recoveryClearPassword() {
+            systemPassword = '';
+            document.getElementById('password-container').classList.add('hidden');
+            const pwdInput = document.getElementById('lock-password-input');
+            if (pwdInput) pwdInput.value = '';
+            showRecoveryMsg('Password removed successfully!');
+        }
+
+        function recoveryFactoryReset() {
+            systemPassword = '';
+            username = 'Dragon User';
+            isDarkMode = false;
+            isSetupCompleted = false;
+            document.getElementById('password-container').classList.add('hidden');
+            const pwdInput = document.getElementById('lock-password-input');
+            if (pwdInput) pwdInput.value = '';
+            setWallpaper('yosemite');
+            showRecoveryMsg('Factory Reset Complete!');
+        }
+
+        function showRecoveryMsg(msg) {
+            const el = document.getElementById('recovery-msg');
+            el.innerText = msg;
+            el.style.opacity = '1';
+            setTimeout(() => el.style.opacity = '0', 2000);
+        }
+
+        function exitRecoveryAndReboot() {
+            document.getElementById('recovery-screen').classList.add('hidden');
+            initBootSequence();
+        }
+
+        // Setup Wizard
+        function startSetupWizard() {
+            const wizard = document.getElementById('setup-wizard');
+            wizard.classList.remove('hidden');
+            
+            const helloStr = "Hello";
+            const container = document.getElementById('hello-container');
+            container.innerHTML = '';
+            
+            helloStr.split('').forEach((char, index) => {
+                const span = document.createElement('span');
+                span.className = 'animated-letter';
+                span.innerText = char;
+                span.style.animationDelay = `${index * 0.12}s`;
+                container.appendChild(span);
+            });
+
+            renderSetupWallpapers();
+            nextSetupStep(0);
+        }
+
+        function renderSetupWallpapers() {
+            const grid = document.getElementById('setup-wallpaper-grid');
+            grid.innerHTML = Object.keys(WALLPAPERS).map(key => `
+                <div onclick="selectSetupWallpaper('${key}')" id="setup-wp-${key}" class="setup-wp-item group relative rounded-2xl overflow-hidden border-2 cursor-pointer transition ${activeWallpaper.name === WALLPAPERS[key].name ? 'border-indigo-500 scale-105' : 'border-transparent hover:border-white/40'}">
+                    <img src="${WALLPAPERS[key].url}" class="h-20 w-full object-cover">
+                    <div class="absolute inset-0 bg-black/40 flex items-end p-2">
+                        <span class="text-[11px] font-medium text-white">${WALLPAPERS[key].name}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function nextSetupStep(stepNum) {
+            for (let i = 0; i <= 4; i++) {
+                const el = document.getElementById(`setup-step-${i}`);
+                if (el) el.classList.add('hidden');
+            }
+            const active = document.getElementById(`setup-step-${stepNum}`);
+            if (active) active.classList.remove('hidden');
+        }
+
+        function selectSetupWallpaper(key) {
+            setWallpaper(key);
+            renderSetupWallpapers();
+        }
+
+        function handleSetupCustomWallpaper(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const url = URL.createObjectURL(file);
+                WALLPAPERS['custom'] = { name: 'Custom Background', url: url, isDark: false };
+                setWallpaper('custom');
+                renderSetupWallpapers();
+            }
+        }
+
+        function selectSetupTheme(dark) {
+            toggleDarkMode(dark);
+            const btnDark = document.getElementById('setup-theme-dark');
+            const btnLight = document.getElementById('setup-theme-light');
+            if (dark) {
+                btnDark.className = "p-5 rounded-2xl bg-slate-900 border-2 border-indigo-500 flex flex-col items-center space-y-3";
+                btnLight.className = "p-5 rounded-2xl bg-white/90 border-2 border-transparent flex flex-col items-center space-y-3";
+            } else {
+                btnLight.className = "p-5 rounded-2xl bg-white/90 border-2 border-indigo-500 flex flex-col items-center space-y-3";
+                btnDark.className = "p-5 rounded-2xl bg-slate-900 border-2 border-transparent flex flex-col items-center space-y-3";
+            }
+        }
+
+        function finishSetup(skipPassword) {
+            const uNameInput = document.getElementById('setup-username-input').value;
+            if (uNameInput && uNameInput.trim() !== '') {
+                username = uNameInput.trim();
+            }
+            updateUsernameDisplays();
+
+            if (!skipPassword) {
+                const pwd = document.getElementById('setup-pwd-input').value;
+                if (pwd) systemPassword = pwd;
+            }
+            isSetupCompleted = true;
+            document.getElementById('setup-wizard').classList.add('hidden');
+            renderDock();
+            renderLauncherGrid();
+            showLockScreen();
+        }
+
+        function updateUsernameDisplays() {
+            document.getElementById('launcher-username').innerText = username;
+            document.getElementById('lock-user-disp').innerText = username;
+            document.getElementById('user-avatar-initials').innerText = username.substring(0, 2).toUpperCase();
+        }
+
+        function showLockScreen() {
+            const lockScreen = document.getElementById('lock-screen');
+            lockScreen.classList.remove('hidden');
+            lockScreen.style.transform = 'translateY(0)';
+            isLocked = true;
+        }
+
+        function initGlobalListeners() {
+            window.addEventListener('keydown', (e) => {
+                if (isLocked && !document.getElementById('lock-screen').classList.contains('hidden')) {
+                    if (e.code === 'Space' || e.code === 'Enter') {
+                        e.preventDefault();
+                        unlockAttempt();
+                    }
+                }
+            });
+
+            window.addEventListener('click', () => {
+                closeLauncher();
+                hideContextMenu();
+            });
+        }
+
+        function handleLockScreenClick(e) {
+            if (isLocked) {
+                unlockAttempt();
+            }
+        }
+
+        function unlockAttempt() {
+            const pwdContainer = document.getElementById('password-container');
+
+            if (systemPassword && systemPassword.trim() !== '') {
+                pwdContainer.classList.remove('hidden');
+                setTimeout(() => {
+                    document.getElementById('lock-password-input').focus();
+                }, 100);
+            } else {
+                performUnlock();
+            }
+        }
+
+        function submitPassword() {
+            const pwdInput = document.getElementById('lock-password-input');
+            const errText = document.getElementById('password-error');
+            const pwdContainer = document.getElementById('password-container');
+
+            if (!systemPassword || pwdInput.value === systemPassword) {
+                errText.style.opacity = '0';
+                pwdInput.value = '';
+                performUnlock();
+            } else {
+                errText.style.opacity = '1';
+                pwdContainer.classList.add('animate-shake');
+                setTimeout(() => {
+                    pwdContainer.classList.remove('animate-shake');
+                }, 400);
+            }
+        }
+
+        function performUnlock() {
+            const lockScreen = document.getElementById('lock-screen');
+            const desktopEnv = document.getElementById('desktop-environment');
+            const topBar = document.getElementById('top-bar');
+            const dock = document.getElementById('dock');
+
+            lockScreen.style.transform = 'translateY(-100%)';
+            desktopEnv.classList.remove('opacity-0');
+            desktopEnv.classList.add('opacity-100');
+            
+            setTimeout(() => {
+                topBar.style.transform = 'translateY(0)';
+                dock.style.transform = 'translateY(0)';
+                isLocked = false;
+            }, 150);
+        }
+
+        function lockSystem() {
+            closeLauncher();
+            const lockScreen = document.getElementById('lock-screen');
+            const topBar = document.getElementById('top-bar');
+            const dock = document.getElementById('dock');
+            const pwdContainer = document.getElementById('password-container');
+
+            topBar.style.transform = 'translateY(-100%)';
+            dock.style.transform = 'translateY(100px)';
+
+            setTimeout(() => {
+                lockScreen.style.transform = 'translateY(0)';
+                if (systemPassword) {
+                    pwdContainer.classList.remove('hidden');
+                } else {
+                    pwdContainer.classList.add('hidden');
+                }
+                isLocked = true;
+            }, 300);
+        }
+
+        function restartSystem() {
+            closeLauncher();
+            lockSystem();
+            setTimeout(() => {
+                initBootSequence();
+            }, 500);
+        }
+
+        // Dock & Launcher Layout Dynamic Rendering
+        function renderDock() {
+            const dock = document.getElementById('dock');
+            dock.innerHTML = '';
+
+            Object.keys(systemApps).forEach(appId => {
+                const app = systemApps[appId];
+                if (app.pinned) {
+                    const btn = document.createElement('button');
+                    btn.className = 'dock-item relative group p-2 rounded-2xl hover:bg-black/10 transition flex flex-col items-center';
+                    btn.onclick = () => openApp(appId);
+                    btn.oncontextmenu = (e) => showContextMenu(e, appId);
+
+                    let iconBox = `<div class="w-12 h-12 rounded-2xl bg-gradient-to-tr ${app.gradient} flex items-center justify-center text-white text-2xl shadow-lg"><i class="fa-solid ${app.icon}"></i></div>`;
+                    
+                    if (app.isCustom && app.customIcon) {
+                        iconBox = `<div class="w-12 h-12 flex items-center justify-center"><img src="${app.customIcon}" class="w-10 h-10 object-contain rounded-xl drop-shadow-md"></div>`;
+                    }
+
+                    btn.innerHTML = `
+                        ${iconBox}
+                        <span class="absolute -top-10 bg-black/80 backdrop-blur-md text-white text-[11px] px-2.5 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition duration-200 pointer-events-none whitespace-nowrap">${app.name}</span>
+                        <div id="dot-${appId}" class="w-1.5 h-1.5 ${isDarkMode ? 'bg-white' : 'bg-slate-900'} rounded-full mt-1 ${openWindows[appId] ? 'opacity-100' : 'opacity-0'} transition-opacity"></div>
+                    `;
+                    dock.appendChild(btn);
+                }
+            });
+        }
+
+        function renderLauncherGrid() {
+            const grid = document.getElementById('launcher-grid');
+            grid.innerHTML = '';
+
+            Object.keys(systemApps).forEach(appId => {
+                const app = systemApps[appId];
+                const btn = document.createElement('button');
+                btn.className = 'app-card flex flex-col items-center p-2.5 rounded-xl hover:bg-black/5 transition group';
+                btn.onclick = () => launchFromMenu(appId);
+                btn.oncontextmenu = (e) => showContextMenu(e, appId);
+
+                let iconBox = `<div class="w-11 h-11 rounded-xl bg-gradient-to-tr ${app.gradient} flex items-center justify-center text-white text-lg shadow-md group-hover:scale-105 transition"><i class="fa-solid ${app.icon}"></i></div>`;
+                
+                if (app.isCustom && app.customIcon) {
+                    iconBox = `<div class="w-11 h-11 flex items-center justify-center group-hover:scale-105 transition"><img src="${app.customIcon}" class="w-9 h-9 object-contain rounded-xl drop-shadow-sm"></div>`;
+                }
+
+                btn.innerHTML = `
+                    ${iconBox}
+                    <span class="text-[11px] ${isDarkMode ? 'text-white/90' : 'text-slate-800'} font-medium mt-1.5 text-center truncate w-full">${app.name}</span>
+                `;
+                grid.appendChild(btn);
+            });
+        }
+
+        // Context Menu Handler
+        function showContextMenu(e, appId) {
+            e.preventDefault();
+            e.stopPropagation();
+            targetContextAppId = appId;
+
+            const menu = document.getElementById('context-menu');
+            menu.style.left = `${e.clientX}px`;
+            menu.style.top = `${e.clientY - 50}px`;
+            menu.classList.remove('hidden');
+
+            const pinText = document.getElementById('context-pin-text');
+            pinText.innerText = systemApps[appId].pinned ? 'Unpin from Dock' : 'Pin to Dock';
+
+            const delBtn = document.getElementById('context-delete-btn');
+            if (systemApps[appId].isCustom) {
+                delBtn.classList.remove('hidden');
+            } else {
+                delBtn.classList.add('hidden');
+            }
+        }
+
+        function hideContextMenu() {
+            const menu = document.getElementById('context-menu');
+            if (menu) menu.classList.add('hidden');
+        }
+
+        function handleContextPin() {
+            if (targetContextAppId && systemApps[targetContextAppId]) {
+                systemApps[targetContextAppId].pinned = !systemApps[targetContextAppId].pinned;
+                renderDock();
+            }
+            hideContextMenu();
+        }
+
+        function handleContextDelete() {
+            if (targetContextAppId && systemApps[targetContextAppId] && systemApps[targetContextAppId].isCustom) {
+                closeApp(targetContextAppId);
+                delete systemApps[targetContextAppId];
+                renderDock();
+                renderLauncherGrid();
+            }
+            hideContextMenu();
+        }
+
+        // Clock & Battery Functions
+        function initClock() {
+            function updateTime() {
+                const now = new Date();
+                const hours = now.getHours();
+                const minutes = now.getMinutes().toString().padStart(2, '0');
+                const ampm = hours >= 12 ? 'PM' : 'AM';
+                const formattedHours = hours % 12 || 12;
+
+                const timeStr = `${formattedHours}:${minutes} ${ampm}`;
+                const lockTimeStr = `${formattedHours}:${minutes}`;
+                
+                const options = { weekday: 'long', month: 'long', day: 'numeric' };
+                const dateStr = now.toLocaleDateString('en-US', options);
+
+                document.getElementById('top-clock').innerText = timeStr;
+                document.getElementById('lock-time').innerText = lockTimeStr;
+                document.getElementById('lock-date').innerText = dateStr;
+            }
+            updateTime();
+            setInterval(updateTime, 1000);
+        }
+
+        function initBattery() {
+            if ('getBattery' in navigator) {
+                navigator.getBattery().then(battery => {
+                    function updateBatteryInfo() {
+                        const level = Math.round(battery.level * 100);
+                        document.getElementById('battery-level').innerText = `${level}%`;
+                        const icon = document.getElementById('battery-icon');
+                        
+                        if (battery.charging) {
+                            icon.className = "fa-solid fa-battery-charging text-green-500 text-sm";
+                        } else if (level <= 20) {
+                            icon.className = "fa-solid fa-battery-quarter text-red-500 text-sm";
+                        } else if (level <= 50) {
+                            icon.className = "fa-solid fa-battery-half text-yellow-500 text-sm";
+                        } else {
+                            icon.className = "fa-solid fa-battery-full text-sm";
+                        }
+                    }
+                    updateBatteryInfo();
+                    battery.addEventListener('levelchange', updateBatteryInfo);
+                    battery.addEventListener('chargingchange', updateBatteryInfo);
+                }).catch(() => {
+                    document.getElementById('battery-level').innerText = "100%";
+                });
+            }
+        }
+
+        // Launcher Menu Functions
+        function toggleLauncher(e) {
+            if (e) e.stopPropagation();
+            const menu = document.getElementById('launcher-menu');
+            if (menu.classList.contains('opacity-0')) {
+                menu.classList.remove('opacity-0', 'pointer-events-none', '-translate-y-4');
+                menu.classList.add('opacity-100', 'pointer-events-auto', 'translate-y-0');
+            } else {
+                closeLauncher();
+            }
+        }
+
+        function closeLauncher() {
+            const menu = document.getElementById('launcher-menu');
+            if (menu) {
+                menu.classList.add('opacity-0', 'pointer-events-none', '-translate-y-4');
+                menu.classList.remove('opacity-100', 'pointer-events-auto', 'translate-y-0');
+            }
+        }
+
+        function filterApps() {
+            const q = document.getElementById('launcher-search').value.toLowerCase();
+            const cards = document.querySelectorAll('.app-card');
+            cards.forEach(card => {
+                const name = card.querySelector('span').innerText.toLowerCase();
+                card.style.display = name.includes(q) ? 'flex' : 'none';
+            });
+        }
+
+        function launchFromMenu(appId) {
+            closeLauncher();
+            openApp(appId);
+        }
+
+        function openApp(appId) {
+            if (openWindows[appId]) {
+                focusWindow(appId);
+                if (openWindows[appId].minimized) {
+                    restoreWindow(appId);
+                }
+                return;
+            }
+
+            const container = document.getElementById('window-container');
+            const win = document.createElement('div');
+            win.id = `win-${appId}`;
+            
+            const baseClass = isDarkMode ? 'glass-window' : 'glass-window glass-window-light';
+            win.className = `${baseClass} absolute rounded-2xl flex flex-col overflow-hidden transition-all duration-300 shadow-2xl`;
+            
+            if (appId === 'calculator') {
+                win.style.width = '310px';
+                win.style.height = '420px';
+            } else {
+                win.style.width = '750px';
+                win.style.height = '480px';
+            }
+
+            win.style.top = `${60 + Object.keys(openWindows).length * 20}px`;
+            win.style.left = `${100 + Object.keys(openWindows).length * 20}px`;
+            win.style.zIndex = ++highestZIndex;
+
+            win.onmousedown = () => focusWindow(appId);
+
+            const appObj = systemApps[appId] || { name: 'App' };
+
+            const maximizeBtn = appId === 'calculator' 
+                ? `<button class="w-3 h-3 rounded-full bg-gray-400 opacity-40 cursor-not-allowed flex items-center justify-center text-[8px]"></button>`
+                : `<button onclick="maximizeApp('${appId}')" class="w-3 h-3 rounded-full bg-green-500 hover:bg-green-600 transition flex items-center justify-center text-[8px] text-green-900 group">
+                    <i class="fa-solid fa-expand opacity-0 group-hover:opacity-100"></i>
+                   </button>`;
+
+            let headerMiddleNav = `<span class="ml-3 text-xs font-semibold tracking-wide">${appObj.name}</span>`;
+            if (appId === 'browser') {
+                headerMiddleNav = `
+                    <div class="flex-1 max-w-lg mx-4 flex items-center space-x-2">
+                        <button onclick="browserNav('reload')" class="p-1 rounded-lg hover:bg-black/10 text-xs"><i class="fa-solid fa-rotate-right"></i></button>
+                        <div class="flex-1 relative">
+                            <input id="browser-url" type="text" value="https://www.google.com" onkeydown="if(event.key==='Enter') navigateBrowser()"
+                                   class="w-full pl-7 pr-3 py-1 rounded-xl bg-black/5 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-400 border border-black/10">
+                            <i class="fa-solid fa-lock absolute left-2.5 top-1/2 -translate-y-1/2 text-[9px] text-green-600"></i>
+                        </div>
+                    </div>
+                `;
+            } else if (appObj.isCustom) {
+                headerMiddleNav = `
+                    <div class="flex-1 max-w-md mx-4 flex items-center space-x-2">
+                        <div class="px-3 py-1 rounded-xl bg-black/5 border border-black/10 text-xs truncate flex-1 flex items-center space-x-1.5">
+                            <i class="fa-solid fa-globe text-[10px] text-indigo-500"></i>
+                            <span class="font-medium">${appObj.name}</span>
+                            <span class="opacity-50 text-[10px]">(${appObj.url})</span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            win.innerHTML = `
+                <div class="window-header h-10 px-4 bg-black/5 backdrop-blur-md border-b border-black/10 flex items-center justify-between cursor-move select-none">
+                    <div class="flex items-center space-x-2">
+                        <button onclick="closeApp('${appId}')" class="w-3 h-3 rounded-full bg-red-500 hover:bg-red-600 transition flex items-center justify-center text-[8px] text-red-900 group">
+                            <i class="fa-solid fa-xmark opacity-0 group-hover:opacity-100"></i>
+                        </button>
+                        <button onclick="minimizeApp('${appId}')" class="w-3 h-3 rounded-full bg-yellow-500 hover:bg-yellow-600 transition flex items-center justify-center text-[8px] text-yellow-900 group">
+                            <i class="fa-solid fa-minus opacity-0 group-hover:opacity-100"></i>
+                        </button>
+                        ${maximizeBtn}
+                    </div>
+                    ${headerMiddleNav}
+                    <div></div>
+                </div>
+                <div id="content-${appId}" class="flex-1 overflow-auto relative">
+                </div>
+            `;
+
+            container.appendChild(win);
+            openWindows[appId] = { element: win, minimized: false, maximized: false };
+
+            document.getElementById('active-app-name').innerText = appObj.name;
+            
+            const dot = document.getElementById(`dot-${appId}`);
+            if (dot) dot.style.opacity = '1';
+
+            makeDraggable(win, win.querySelector('.window-header'));
+            loadAppContent(appId);
+        }
+
+        function focusWindow(appId) {
+            if (openWindows[appId]) {
+                openWindows[appId].element.style.zIndex = ++highestZIndex;
+                const appObj = systemApps[appId] || { name: 'App' };
+                document.getElementById('active-app-name').innerText = appObj.name;
+            }
+        }
+
+        function closeApp(appId) {
+            if (openWindows[appId]) {
+                openWindows[appId].element.remove();
+                delete openWindows[appId];
+                const dot = document.getElementById(`dot-${appId}`);
+                if (dot) dot.style.opacity = '0';
+                document.getElementById('active-app-name').innerText = 'Desktop';
+            }
+        }
+
+        function minimizeApp(appId) {
+            if (openWindows[appId]) {
+                openWindows[appId].element.style.transform = 'scale(0.2) translateY(1000px)';
+                openWindows[appId].element.style.opacity = '0';
+                openWindows[appId].minimized = true;
+            }
+        }
+
+        function restoreWindow(appId) {
+            if (openWindows[appId]) {
+                openWindows[appId].element.style.transform = 'scale(1) translateY(0)';
+                openWindows[appId].element.style.opacity = '1';
+                openWindows[appId].minimized = false;
+            }
+        }
+
+        function maximizeApp(appId) {
+            if (appId === 'calculator') return;
+            const win = openWindows[appId];
+            if (!win) return;
+
+            if (!win.maximized) {
+                win.oldStyle = {
+                    width: win.element.style.width,
+                    height: win.element.style.height,
+                    top: win.element.style.top,
+                    left: win.element.style.left
+                };
+                win.element.style.width = '100%';
+                win.element.style.height = 'calc(100% - 32px)';
+                win.element.style.top = '32px';
+                win.element.style.left = '0px';
+                win.maximized = true;
+            } else {
+                win.element.style.width = win.oldStyle.width;
+                win.element.style.height = win.oldStyle.height;
+                win.element.style.top = win.oldStyle.top;
+                win.element.style.left = win.oldStyle.left;
+                win.maximized = false;
+            }
+        }
+
+        function makeDraggable(elmnt, header) {
+            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+            header.onmousedown = dragMouseDown;
+
+            function dragMouseDown(e) {
+                e = e || window.event;
+                e.preventDefault();
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                document.onmouseup = closeDragElement;
+                document.onmousemove = elementDrag;
+            }
+
+            function elementDrag(e) {
+                e = e || window.event;
+                e.preventDefault();
+                pos1 = pos3 - e.clientX;
+                pos2 = pos4 - e.clientY;
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+                elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+            }
+
+            function closeDragElement() {
+                document.onmouseup = null;
+                document.onmousemove = null;
+            }
+        }
+
+        function loadAppContent(appId) {
+            const target = document.getElementById(`content-${appId}`);
+            const app = systemApps[appId];
+
+            if (app && app.isCustom) {
+                target.innerHTML = `
+                    <div class="flex-1 h-full bg-white">
+                        <iframe src="${app.url}" class="w-full h-full border-none"></iframe>
+                    </div>
+                `;
+                return;
+            }
+            
+            if (appId === 'browser') {
+                target.innerHTML = `
+                    <div class="flex-1 h-full bg-white">
+                        <iframe id="browser-iframe" src="https://www.google.com/search?igu=1" class="w-full h-full border-none"></iframe>
+                    </div>
+                `;
+            } else if (appId === 'settings') {
+                renderSettingsApp(target);
+            } else if (appId === 'calendar') {
+                renderCalendarApp(target);
+            } else if (appId === 'notes') {
+                target.innerHTML = `
+                    <div class="p-4 h-full flex flex-col">
+                        <textarea class="w-full flex-1 bg-black/5 border border-black/10 rounded-xl p-4 text-sm focus:outline-none resize-none font-mono" placeholder="Type your DragonOS notes here..."></textarea>
+                    </div>
+                `;
+            } else if (appId === 'terminal') {
+                target.innerHTML = `
+                    <div class="p-4 h-full bg-slate-950 font-mono text-green-400 text-xs flex flex-col">
+                        <p class="text-white/60 mb-2">DragonOS Terminal v2.0.0 [x86_64-dragon-linux]</p>
+                        <p class="mb-1"><span class="text-indigo-400">user@dragon-os</span>:<span class="text-blue-400">~</span>$ uname -a</p>
+                        <p class="text-white/80 mb-3">DragonOS 6.1.0-dragon-generic #1 SMP PREEMPT_DYNAMIC x86_64</p>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-indigo-400">user@dragon-os</span>:<span class="text-blue-400">~</span>$&nbsp;
+                            <input type="text" class="bg-transparent focus:outline-none text-green-400 flex-1 font-mono">
+                        </div>
+                    </div>
+                `;
+            } else if (appId === 'calculator') {
+                calcExpression = '';
+                target.innerHTML = `
+                    <div class="p-4 h-full flex flex-col items-center justify-between">
+                        <div id="calc-display" class="w-full bg-black/10 p-3 rounded-xl text-right text-2xl font-mono border border-black/10 overflow-x-auto min-h-[50px] flex items-center justify-end">0</div>
+                        <div class="grid grid-cols-4 gap-2 w-full text-center mt-2">
+                            <button onclick="calcPress('C')" class="p-3 bg-black/10 rounded-xl hover:bg-black/20 font-bold text-xs">C</button>
+                            <button onclick="calcPress('(')" class="p-3 bg-black/10 rounded-xl hover:bg-black/20 font-bold text-xs">(</button>
+                            <button onclick="calcPress(')')" class="p-3 bg-black/10 rounded-xl hover:bg-black/20 font-bold text-xs">)</button>
+                            <button onclick="calcPress('/')" class="p-3 bg-indigo-600 rounded-xl hover:bg-indigo-500 font-bold text-xs text-white">÷</button>
+                            
+                            <button onclick="calcPress('7')" class="p-3 bg-black/10 rounded-xl hover:bg-black/20 text-xs">7</button>
+                            <button onclick="calcPress('8')" class="p-3 bg-black/10 rounded-xl hover:bg-black/20 text-xs">8</button>
+                            <button onclick="calcPress('9')" class="p-3 bg-black/10 rounded-xl hover:bg-black/20 text-xs">9</button>
+                            <button onclick="calcPress('*')" class="p-3 bg-indigo-600 rounded-xl hover:bg-indigo-500 font-bold text-xs text-white">×</button>
+                            
+                            <button onclick="calcPress('4')" class="p-3 bg-black/10 rounded-xl hover:bg-black/20 text-xs">4</button>
+                            <button onclick="calcPress('5')" class="p-3 bg-black/10 rounded-xl hover:bg-black/20 text-xs">5</button>
+                            <button onclick="calcPress('6')" class="p-3 bg-black/10 rounded-xl hover:bg-black/20 text-xs">6</button>
+                            <button onclick="calcPress('-')" class="p-3 bg-indigo-600 rounded-xl hover:bg-indigo-500 font-bold text-xs text-white">-</button>
+                            
+                            <button onclick="calcPress('1')" class="p-3 bg-black/10 rounded-xl hover:bg-black/20 text-xs">1</button>
+                            <button onclick="calcPress('2')" class="p-3 bg-black/10 rounded-xl hover:bg-black/20 text-xs">2</button>
+                            <button onclick="calcPress('3')" class="p-3 bg-black/10 rounded-xl hover:bg-black/20 text-xs">3</button>
+                            <button onclick="calcPress('+')" class="p-3 bg-indigo-600 rounded-xl hover:bg-indigo-500 font-bold text-xs text-white">+</button>
+                            
+                            <button onclick="calcPress('0')" class="col-span-2 p-3 bg-black/10 rounded-xl hover:bg-black/20 text-xs">0</button>
+                            <button onclick="calcPress('.')" class="p-3 bg-black/10 rounded-xl hover:bg-black/20 text-xs">.</button>
+                            <button onclick="calcPress('=')" class="p-3 bg-emerald-600 rounded-xl hover:bg-emerald-500 font-bold text-xs text-white">=</button>
+                        </div>
+                    </div>
+                `;
+            } else if (appId === 'getapps') {
+                renderGetAppsInstaller(target);
+            }
+        }
+
+        function renderGetAppsInstaller(target) {
+            target.innerHTML = `
+                <div class="p-6 max-w-lg mx-auto flex flex-col space-y-6">
+                    <div class="text-center">
+                        <h2 class="text-xl font-bold">Get Apps Web Installer</h2>
+                        <p class="text-xs opacity-70">Turn any Web URL into a custom DragonOS app</p>
+                    </div>
+
+                    <div class="bg-black/5 p-4 rounded-2xl border border-black/10 space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold mb-1">Application Title</label>
+                            <input type="text" id="install-app-title" placeholder="My Web App" class="w-full px-3 py-2 rounded-xl bg-white border border-black/10 text-xs focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold mb-1">Web URL</label>
+                            <input type="text" id="install-app-url" placeholder="https://example.com" class="w-full px-3 py-2 rounded-xl bg-white border border-black/10 text-xs focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold mb-1">Upload Custom Icon (Optional)</label>
+                            <input type="file" id="install-app-icon" accept="image/*" class="text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500 cursor-pointer">
+                        </div>
+                        <button onclick="installCustomApp()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold transition">
+                            Install Web App
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function installCustomApp() {
+            const title = document.getElementById('install-app-title').value.trim();
+            let url = document.getElementById('install-app-url').value.trim();
+            const iconFile = document.getElementById('install-app-icon').files[0];
+
+            if (!title || !url) return;
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                url = 'https://' + url;
+            }
+
+            const appId = 'custom_' + Date.now();
+            let customIconUrl = null;
+
+            if (iconFile) {
+                customIconUrl = URL.createObjectURL(iconFile);
+            } else {
+                try {
+                    const domain = new URL(url).hostname;
+                    customIconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+                } catch {
+                    customIconUrl = null;
+                }
+            }
+
+            systemApps[appId] = {
+                name: title,
+                icon: 'fa-globe',
+                customIcon: customIconUrl,
+                gradient: '',
+                pinned: true,
+                isCustom: true,
+                url: url
+            };
+
+            renderDock();
+            renderLauncherGrid();
+            closeApp('getapps');
+            openApp(appId);
+        }
+
+        function calcPress(val) {
+            const display = document.getElementById('calc-display');
+            if (val === 'C') {
+                calcExpression = '';
+                display.innerText = '0';
+            } else if (val === '=') {
+                try {
+                    const res = eval(calcExpression);
+                    display.innerText = res;
+                    calcExpression = res.toString();
+                } catch {
+                    display.innerText = 'Error';
+                    calcExpression = '';
+                }
+            } else {
+                calcExpression += val;
+                display.innerText = calcExpression;
+            }
+        }
+
+        function browserNav(action) {
+            const iframe = document.getElementById('browser-iframe');
+            if (action === 'reload' && iframe) iframe.src = iframe.src;
+        }
+
+        function navigateBrowser() {
+            const urlInput = document.getElementById('browser-url');
+            const iframe = document.getElementById('browser-iframe');
+            if (urlInput && iframe) {
+                let val = urlInput.value;
+                if (!val.startsWith('http://') && !val.startsWith('https://')) {
+                    val = 'https://www.google.com/search?q=' + encodeURIComponent(val) + '&igu=1';
+                }
+                iframe.src = val;
+            }
+        }
+
+        function renderSettingsApp(target) {
+            target.innerHTML = `
+                <div class="p-6 max-w-xl mx-auto space-y-8">
+                    <!-- User Account Details -->
+                    <div>
+                        <h3 class="text-xs font-semibold uppercase tracking-wider opacity-60 mb-4">Account Profile</h3>
+                        <div class="bg-black/5 p-4 rounded-2xl border border-black/10 flex flex-col space-y-3">
+                            <label class="text-xs font-semibold opacity-80">Display Account Name</label>
+                            <div class="flex space-x-2">
+                                <input type="text" id="settings-username-input" value="${username}" placeholder="Dragon User" 
+                                       class="flex-1 px-4 py-2 rounded-xl bg-white border border-black/20 text-xs focus:outline-none">
+                                <button onclick="saveAccountName()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-xs font-semibold text-white">Update Name</button>
+                            </div>
+                            <span id="name-saved-msg" class="text-xs text-green-600 opacity-0 transition">Account name updated!</span>
+                        </div>
+                    </div>
+
+                    <!-- Wallpaper Selection -->
+                    <div>
+                        <h3 class="text-xs font-semibold uppercase tracking-wider opacity-60 mb-4">Desktop Wallpaper</h3>
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            ${Object.keys(WALLPAPERS).map(key => `
+                                <div onclick="setWallpaper('${key}')" class="group relative rounded-2xl overflow-hidden border-2 cursor-pointer transition ${activeWallpaper.name === WALLPAPERS[key].name ? 'border-indigo-500 scale-105' : 'border-transparent hover:border-black/40'}">
+                                    <img src="${WALLPAPERS[key].url}" class="h-28 w-full object-cover">
+                                    <div class="absolute inset-0 bg-black/40 flex items-end p-2">
+                                        <span class="text-xs font-medium text-white">${WALLPAPERS[key].name}</span>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold mb-2">Upload Custom Image</label>
+                            <input type="file" accept="image/*" onchange="handleSetupCustomWallpaper(event)" class="text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500 cursor-pointer">
+                        </div>
+                    </div>
+
+                    <!-- Dark Mode Toggle -->
+                    <div class="pt-4 border-t border-black/10 flex items-center justify-between">
+                        <div>
+                            <h3 class="text-sm font-semibold mb-1">Dark Mode Glassmorphism</h3>
+                            <p class="text-xs opacity-60">Toggle dark glass or clean translucent window theme</p>
+                        </div>
+                        <button onclick="toggleDarkMode(!isDarkMode)" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold">
+                            ${isDarkMode ? 'Switch to Light' : 'Switch to Dark'}
+                        </button>
+                    </div>
+
+                    <!-- Security & Recovery -->
+                    <div class="pt-4 border-t border-black/10">
+                        <h3 class="text-xs font-semibold uppercase tracking-wider opacity-60 mb-4">Security & Password</h3>
+                        <div class="bg-black/5 p-4 rounded-2xl border border-black/10 flex flex-col space-y-3">
+                            <label class="text-xs opacity-80">Set Lock Screen Password</label>
+                            <div class="flex space-x-2">
+                                <input type="password" id="settings-pwd-input" value="${systemPassword}" placeholder="Enter new password" 
+                                       class="flex-1 px-4 py-2 rounded-xl bg-white border border-black/20 text-xs focus:outline-none">
+                                <button onclick="savePassword()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-xs font-semibold text-white">Save</button>
+                                <button onclick="removePassword()" class="px-4 py-2 bg-red-600/30 hover:bg-red-600/50 text-red-700 rounded-xl text-xs font-semibold">Remove</button>
+                            </div>
+                            <span id="pwd-saved-msg" class="text-xs text-green-600 opacity-0 transition">Password updated!</span>
+                            <p class="text-[11px] text-slate-500 mt-2 italic"><i class="fa-solid fa-circle-info mr-1"></i>Hold SPACE during boot to enter DragonOS Recovery.</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function saveAccountName() {
+            const val = document.getElementById('settings-username-input').value.trim();
+            if (val) {
+                username = val;
+                updateUsernameDisplays();
+                const msg = document.getElementById('name-saved-msg');
+                msg.style.opacity = '1';
+                setTimeout(() => msg.style.opacity = '0', 2000);
+            }
+        }
+
+        function toggleDarkMode(enableDark) {
+            isDarkMode = enableDark;
+            const topBar = document.getElementById('top-bar');
+            const topLogo = document.getElementById('top-bar-logo');
+            const launcherMenu = document.getElementById('launcher-menu');
+
+            if (isDarkMode) {
+                launcherMenu.classList.remove('glass-menu-light');
+                launcherMenu.classList.add('glass-panel-dark');
+            } else {
+                launcherMenu.classList.add('glass-menu-light');
+                launcherMenu.classList.remove('glass-panel-dark');
+            }
+
+            Object.keys(openWindows).forEach(appId => {
+                const win = openWindows[appId].element;
+                if (isDarkMode) {
+                    win.classList.remove('glass-window-light');
+                } else {
+                    win.classList.add('glass-window-light');
+                }
+            });
+
+            renderDock();
+            renderLauncherGrid();
+
+            const settingsTarget = document.getElementById('content-settings');
+            if (settingsTarget) renderSettingsApp(settingsTarget);
+        }
+
+        function setWallpaper(key) {
+            activeWallpaper = WALLPAPERS[key];
+            const bgContainer = document.getElementById('wallpaper-container');
+            bgContainer.style.backgroundImage = `url('${activeWallpaper.url}')`;
+
+            const topBar = document.getElementById('top-bar');
+            const topLogo = document.getElementById('top-bar-logo');
+
+            if (activeWallpaper.isDark) {
+                topBar.classList.remove('dark-text');
+                topLogo.src = LOGOS.white;
+            } else {
+                topBar.classList.add('dark-text');
+                topLogo.src = LOGOS.black;
+            }
+
+            const settingsTarget = document.getElementById('content-settings');
+            if (settingsTarget) renderSettingsApp(settingsTarget);
+        }
+
+        function savePassword() {
+            const input = document.getElementById('settings-pwd-input');
+            systemPassword = input.value;
+            const msg = document.getElementById('pwd-saved-msg');
+            msg.style.opacity = '1';
+            setTimeout(() => msg.style.opacity = '0', 2000);
+        }
+
+        function removePassword() {
+            systemPassword = '';
+            const input = document.getElementById('settings-pwd-input');
+            if (input) input.value = '';
+            const msg = document.getElementById('pwd-saved-msg');
+            msg.innerText = 'Password removed!';
+            msg.style.opacity = '1';
+            setTimeout(() => {
+                msg.style.opacity = '0';
+                msg.innerText = 'Password updated!';
+            }, 2000);
+        }
+
+        function renderCalendarApp(target) {
+            const year = calendarDate.getFullYear();
+            const month = calendarDate.getMonth();
+            const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            let daysHtml = '';
+            for (let i = 0; i < firstDay; i++) {
+                daysHtml += `<div class="h-10"></div>`;
+            }
+
+            const today = new Date();
+            for (let day = 1; day <= daysInMonth; day++) {
+                const isToday = day === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+                daysHtml += `
+                    <div class="h-10 flex items-center justify-center text-xs font-medium rounded-xl hover:bg-black/10 transition cursor-pointer ${isToday ? 'bg-indigo-600 font-bold text-white shadow-lg' : ''}">
+                        ${day}
+                    </div>
+                `;
+            }
+
+            target.innerHTML = `
+                <div class="p-6 h-full flex flex-col">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-lg font-bold">${monthNames[month]} ${year}</h2>
+                        <div class="flex space-x-2">
+                            <button onclick="changeMonth(-1)" class="p-2 rounded-xl bg-black/5 hover:bg-black/10 text-xs"><i class="fa-solid fa-chevron-left"></i></button>
+                            <button onclick="changeMonth(1)" class="p-2 rounded-xl bg-black/5 hover:bg-black/10 text-xs"><i class="fa-solid fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-7 gap-2 text-center text-xs opacity-50 mb-2 font-semibold">
+                        <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+                    </div>
+                    <div class="grid grid-cols-7 gap-2 text-center flex-1">
+                        ${daysHtml}
+                    </div>
+                </div>
+            `;
+        }
+
+        function changeMonth(offset) {
+            calendarDate.setMonth(calendarDate.getMonth() + offset);
+            const target = document.getElementById('content-calendar');
+            if (target) renderCalendarApp(target);
+        }
+    </script>
+</body>
+</html>
