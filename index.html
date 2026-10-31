@@ -67,54 +67,67 @@
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15) !important;
         }
 
-        .glass-dock {
-            background: rgba(255, 255, 255, 0.25);
-            backdrop-filter: blur(25px) saturate(210%);
-            -webkit-backdrop-filter: blur(25px) saturate(210%);
-            border: 1px solid rgba(255, 255, 255, 0.35);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
-            width: max-content;
-        }
-
-        .glass-topbar {
-            background: rgba(255, 255, 255, 0.12);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.18);
-        }
-
-        .glass-topbar.dark-text {
-            background: rgba(255, 255, 255, 0.45);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            color: #0f172a;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.15);
-        }
-
+        /* Window Glassmorphism Backgrounds */
         .glass-window {
-            background: rgba(18, 24, 38, 0.75);
-            backdrop-filter: blur(28px) saturate(190%);
-            -webkit-backdrop-filter: blur(28px) saturate(190%);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.1);
-            color: #ffffff !important;
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(25px) saturate(180%);
+            -webkit-backdrop-filter: blur(25px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            color: #ffffff;
         }
 
         .glass-window-light {
-            background: rgba(255, 255, 255, 0.85) !important;
-            backdrop-filter: blur(28px) saturate(190%) !important;
-            -webkit-backdrop-filter: blur(28px) saturate(190%) !important;
-            color: #0f172a !important;
-            border: 1px solid rgba(0, 0, 0, 0.12) !important;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.2) !important;
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(25px) saturate(180%);
+            -webkit-backdrop-filter: blur(25px) saturate(180%);
+            border: 1px solid rgba(0, 0, 0, 0.12);
+            color: #0f172a;
+        }
+
+        /* ChromeOS Shelf (Bottom Dock) */
+        .glass-dock {
+            width: 100%;
+            height: 60px;
+            border-radius: 0px !important;
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12px;
+            transform: translateY(100px);
+            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        body.light-mode .glass-dock {
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(25px) saturate(210%);
+            -webkit-backdrop-filter: blur(25px) saturate(210%);
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            color: #0f172a;
+        }
+        body:not(.light-mode) .glass-dock {
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(25px) saturate(210%);
+            -webkit-backdrop-filter: blur(25px) saturate(210%);
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+            color: #ffffff;
         }
 
         .dock-item {
-            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-            transform-origin: bottom center;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            border-radius: 50% !important;
+            transition: background 0.15s ease;
         }
         .dock-item:hover {
-            transform: scale(1.2) translateY(-6px);
+            background: rgba(255, 255, 255, 0.15);
+        }
+        body.light-mode .dock-item:hover {
+            background: rgba(0, 0, 0, 0.08);
         }
 
         .cursor-none-boot {
@@ -154,7 +167,23 @@
             color: #0f172a;
             font-size: 12px;
             font-weight: 500;
-            min-width: 150px;
+            min-width: 160px;
+        }
+
+        /* Toast Notification */
+        #toast-notification {
+            position: fixed;
+            bottom: 75px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            pointer-events: none;
+            z-index: 99999;
+        }
+        #toast-notification.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
         }
 
         /* Hide scrollbars */
@@ -169,7 +198,13 @@
 <body class="relative h-screen w-screen overflow-hidden select-none bg-black" oncontextmenu="handleDesktopRightClick(event)">
 
     <!-- Wallpaper Layer -->
-    <div id="wallpaper-container" class="absolute inset-0 bg-cover bg-center transition-all duration-700 scale-100" style="background-image: url('Iridescent Glass Waves at Sunrise.png');"></div>
+    <div id="wallpaper-container" class="absolute inset-0 bg-cover bg-center transition-all duration-700 scale-100" style="background-image: url('D50105F4-2B7A-40AA-AF34-E958CEA8FAAF.png');"></div>
+
+    <!-- Toast Notification Banner -->
+    <div id="toast-notification" class="px-5 py-3 rounded-2xl bg-slate-900/90 text-white text-xs font-medium shadow-2xl border border-white/20 backdrop-blur-md flex items-center space-x-2.5">
+        <i class="fa-solid fa-circle-exclamation text-amber-400 text-sm"></i>
+        <span id="toast-msg">Light mode is unavailable in this wallpaper.</span>
+    </div>
 
     <!-- Boot Screen Container -->
     <div id="boot-screen" class="absolute inset-0 z-50 bg-black flex flex-col items-center justify-center cursor-none-boot transition-opacity duration-700">
@@ -252,13 +287,13 @@
 
         <div id="setup-step-3" class="hidden w-full max-w-md glass-panel-dark p-8 rounded-3xl border border-white/20 flex flex-col items-center">
             <h2 class="text-2xl font-bold text-white mb-2">System Theme</h2>
-            <p class="text-xs text-white/70 mb-8">Choose your preferred glass theme (Light Mode Default)</p>
+            <p class="text-xs text-white/70 mb-8">Choose your preferred glass theme</p>
             <div class="grid grid-cols-2 gap-4 w-full mb-8">
-                <button id="setup-theme-light" onclick="selectSetupTheme(false)" class="p-5 rounded-2xl bg-white/90 border-2 border-indigo-500 flex flex-col items-center space-y-3">
+                <button id="setup-theme-light" onclick="selectSetupTheme(false)" class="p-5 rounded-2xl bg-white/90 border-2 border-transparent flex flex-col items-center space-y-3">
                     <i class="fa-solid fa-sun text-3xl text-amber-500"></i>
                     <span class="text-xs font-bold text-slate-900">Light Glass</span>
                 </button>
-                <button id="setup-theme-dark" onclick="selectSetupTheme(true)" class="p-5 rounded-2xl bg-slate-900 border-2 border-transparent flex flex-col items-center space-y-3">
+                <button id="setup-theme-dark" onclick="selectSetupTheme(true)" class="p-5 rounded-2xl bg-slate-900 border-2 border-indigo-500 flex flex-col items-center space-y-3">
                     <i class="fa-solid fa-moon text-3xl text-indigo-400"></i>
                     <span class="text-xs font-bold text-white">Dark Glass</span>
                 </button>
@@ -304,58 +339,25 @@
             </div>
             <p id="password-error" class="text-red-400 text-xs mt-2 opacity-0 transition-opacity">Incorrect password. Try again.</p>
         </div>
+        <!-- Lock Screen Power Button -->
+        <div onclick="event.stopPropagation(); restartSystem();" class="absolute bottom-6 right-6 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 flex items-center justify-center text-white text-lg cursor-pointer transition shadow-xl" title="Restart System">
+            <i class="fa-solid fa-power-off"></i>
+        </div>
         <div></div>
     </div>
 
     <!-- Desktop Main Environment -->
     <div id="desktop-environment" class="absolute inset-0 z-10 flex flex-col justify-between pointer-events-none opacity-0 transition-opacity duration-700">
-        <div id="top-bar" class="pointer-events-auto h-8 px-4 flex items-center justify-between text-xs font-medium glass-topbar dark-text transition-all duration-500 transform -translate-y-full">
-            <div class="flex items-center space-x-3">
-                <button id="start-btn" onclick="toggleDragonFlyout(event)" class="flex items-center px-2 py-1 rounded-lg hover:bg-black/10 transition-all duration-200">
-                    <img id="top-bar-logo" src="IMG_6761 3.PNG" alt="Dragon" class="w-5 h-5 object-contain mr-1.5 transition-all">
-                    <span class="font-bold tracking-wide">DragonOS</span>
-                </button>
-                <div class="h-3 w-[1px] bg-black/20"></div>
-                <span id="active-app-name" class="opacity-80 font-normal">Desktop</span>
-            </div>
-            <div class="flex items-center space-x-4">
-                <i class="fa-solid fa-wifi opacity-90 text-xs"></i>
-                <div id="battery-status" class="flex items-center space-x-1.5">
-                    <span id="battery-level">100%</span>
-                    <i id="battery-icon" class="fa-solid fa-battery-full text-sm"></i>
-                </div>
-                <div id="top-clock" class="font-semibold tracking-wide">12:00 PM</div>
-            </div>
-        </div>
-
         <div id="window-container" class="relative flex-1 w-full h-full overflow-hidden pointer-events-auto"></div>
 
-        <div class="pointer-events-auto w-full flex justify-center pb-4 z-20">
-            <div id="dock" class="glass-dock px-4 py-2.5 rounded-3xl flex items-center justify-center space-x-3 transform translate-y-24 transition-transform duration-500 cubic-bezier(0.175, 0.885, 0.32, 1.275)"></div>
-        </div>
-    </div>
-
-    <!-- Original Top-Left Dragon Flyout Menu -->
-    <div id="dragon-flyout-menu" onclick="event.stopPropagation()" class="fixed top-10 left-3 z-40 w-80 glass-menu-light rounded-2xl p-4 flex flex-col shadow-2xl transition-all duration-300 transform -translate-y-4 opacity-0 pointer-events-none">
-        <div class="relative w-full mb-4">
-            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
-            <input type="text" id="dragon-search" oninput="filterDragonFlyoutApps()" placeholder="Search apps..." class="w-full pl-9 pr-3 py-2 rounded-xl bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-400 border border-black/10 text-xs">
-        </div>
-        <div id="dragon-grid" class="grid grid-cols-3 gap-3 my-1 max-h-72 overflow-y-auto no-scrollbar p-1"></div>
-        <div class="mt-3 pt-3 border-t border-black/10 flex items-center justify-between">
-            <div class="flex items-center space-x-2">
-                <div class="w-7 h-7 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-[10px]" id="dragon-avatar-initials">DR</div>
-                <span class="text-xs font-semibold text-slate-800 transition-colors" id="dragon-username-lbl">Dragon User</span>
-            </div>
-            <div class="flex items-center space-x-1.5">
-                <button onclick="lockSystem()" class="px-2.5 py-1.5 rounded-lg bg-black/5 hover:bg-black/10 text-slate-800 text-[11px] font-medium flex items-center space-x-1 transition"><i class="fa-solid fa-lock"></i><span>Lock</span></button>
-                <button onclick="restartSystem()" class="px-2.5 py-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-700 border border-red-500/30 text-[11px] font-medium flex items-center space-x-1 transition"><i class="fa-solid fa-power-off"></i><span>Restart</span></button>
-            </div>
+        <!-- ChromeOS Shelf (Dock) -->
+        <div class="pointer-events-auto w-full z-20">
+            <div id="dock" class="glass-dock"></div>
         </div>
     </div>
 
     <!-- Centered All Apps Start Menu -->
-    <div id="all-apps-menu" onclick="event.stopPropagation()" class="fixed bottom-28 left-1/2 -translate-x-1/2 z-40 w-[680px] h-[520px] glass-menu-light rounded-2xl p-5 flex shadow-2xl transition-all duration-300 transform translate-y-4 opacity-0 pointer-events-none">
+    <div id="all-apps-menu" onclick="event.stopPropagation()" class="fixed bottom-16 left-3 z-40 w-[620px] h-[480px] glass-menu-light rounded-2xl p-5 flex shadow-2xl transition-all duration-300 transform translate-y-4 opacity-0 pointer-events-none mb-3">
         <div class="w-1/3 pr-4 border-r border-black/10 flex flex-col h-full">
             <span class="text-[11px] font-bold uppercase tracking-wider opacity-60 mb-2 px-2">All Apps</span>
             <div id="start-alpha-list" class="flex-1 overflow-y-auto no-scrollbar space-y-1 pr-1"></div>
@@ -387,7 +389,7 @@
     </div>
 
     <!-- Centered Search Apps Flyout Menu -->
-    <div id="search-apps-menu" onclick="event.stopPropagation()" class="fixed bottom-28 left-1/2 -translate-x-1/2 z-40 w-80 glass-menu-light rounded-2xl p-4 flex flex-col shadow-2xl transition-all duration-300 transform translate-y-4 opacity-0 pointer-events-none">
+    <div id="search-apps-menu" onclick="event.stopPropagation()" class="fixed bottom-16 left-3 z-40 w-80 glass-menu-light rounded-2xl p-4 flex flex-col shadow-2xl transition-all duration-300 transform translate-y-4 opacity-0 pointer-events-none mb-3">
         <div class="relative w-full mb-4">
             <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
             <input type="text" id="search-apps-input" oninput="filterSearchApps()" placeholder="Search apps..." class="w-full pl-9 pr-3 py-2 rounded-xl bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-400 border border-black/10 text-xs">
@@ -427,7 +429,10 @@
     </div>
 
     <script>
+        const DEFAULT_WALLPAPER_URL = 'D50105F4-2B7A-40AA-AF34-E958CEA8FAAF.png';
+
         const WALLPAPERS = {
+            cros_desert: { name: 'Desert Dunes (Default)', url: DEFAULT_WALLPAPER_URL, isDark: true },
             iridescent: { name: 'Iridescent Glass Waves', url: 'Iridescent Glass Waves at Sunrise.png', isDark: false },
             yosemite: { name: 'Yosemite Park', url: 'Yosemite_Valley_c466b706-6bcf-4985-941a-a7abd2d1cd09.jpg', isDark: false },
             dusk: { name: 'Mountain Dusk', url: 'daniel-gomez-R4oUpT1n10c-unsplash.jpg', isDark: true },
@@ -456,16 +461,15 @@
         };
 
         let dockOrder = ['browser', 'settings', 'calendar', 'getapps', 'web_youtube', 'web_tiktok', 'web_spotify', 'web_github', 'web_reddit', 'web_wiki'];
-
         let tileGroups = [
             { name: 'My Apps', apps: ['web_youtube', 'web_tiktok', 'web_spotify', 'web_github', 'web_reddit', 'web_wiki'] },
             { name: 'System Apps', apps: ['settings', 'browser', 'calendar', 'terminal', 'notes', 'calculator', 'about'] }
         ];
 
-        let activeWallpaper = WALLPAPERS.iridescent;
+        let activeWallpaper = WALLPAPERS.cros_desert;
         let systemPassword = ''; 
         let username = 'Dragon User';
-        let isDarkMode = false; 
+        let isDarkMode = true; 
         let bootDurationSeconds = 3;
         let isSetupCompleted = false;
 
@@ -493,7 +497,7 @@
                 systemApps,
                 dockOrder,
                 tileGroups,
-                activeWallpaperKey: Object.keys(WALLPAPERS).find(k => WALLPAPERS[k].name === activeWallpaper.name) || 'iridescent',
+                activeWallpaperKey: Object.keys(WALLPAPERS).find(k => WALLPAPERS[k].name === activeWallpaper.name) || 'cros_desert',
                 customWallpaperUrl: WALLPAPERS['custom'] ? WALLPAPERS['custom'].url : null,
                 systemPassword,
                 username,
@@ -512,10 +516,7 @@
                     dockOrder = data.dockOrder || dockOrder;
                     tileGroups = data.tileGroups || tileGroups;
                     
-                    // Unpin about app by default
-                    if (systemApps['about']) {
-                        systemApps['about'].pinned = false;
-                    }
+                    if (systemApps['about']) systemApps['about'].pinned = false;
 
                     if (data.customWallpaperUrl) {
                         WALLPAPERS['custom'] = { name: 'Custom Background', url: data.customWallpaperUrl, isDark: false };
@@ -525,7 +526,7 @@
                     }
                     systemPassword = data.systemPassword || '';
                     username = data.username || 'Dragon User';
-                    isDarkMode = data.isDarkMode ?? false;
+                    isDarkMode = data.isDarkMode ?? true;
                     isSetupCompleted = data.isSetupCompleted ?? false;
                 } catch(e) { console.error(e); }
             }
@@ -571,10 +572,9 @@
                             startSetupWizard();
                         } else {
                             applySystemThemeStyles();
-                            setWallpaper(Object.keys(WALLPAPERS).find(k => WALLPAPERS[k].name === activeWallpaper.name) || 'iridescent');
+                            setWallpaper(Object.keys(WALLPAPERS).find(k => WALLPAPERS[k].name === activeWallpaper.name) || 'cros_desert');
                             renderDock();
                             renderStartMenu();
-                            renderDragonFlyout();
                             showLockScreen();
                         }
                     }, 700);
@@ -691,17 +691,14 @@
             saveToLocalStorage();
             document.getElementById('setup-wizard').classList.add('hidden');
             applySystemThemeStyles();
-            setWallpaper(Object.keys(WALLPAPERS).find(k => WALLPAPERS[k].name === activeWallpaper.name) || 'iridescent');
+            setWallpaper(Object.keys(WALLPAPERS).find(k => WALLPAPERS[k].name === activeWallpaper.name) || 'cros_desert');
             renderDock();
             renderStartMenu();
-            renderDragonFlyout();
             showLockScreen();
         }
 
         function updateUsernameDisplays() {
             document.getElementById('win10-avatar-initials').innerText = username.substring(0, 2).toUpperCase();
-            document.getElementById('dragon-avatar-initials').innerText = username.substring(0, 2).toUpperCase();
-            document.getElementById('dragon-username-lbl').innerText = username;
             document.getElementById('lock-user-disp').innerText = username;
         }
 
@@ -781,7 +778,6 @@
         function performUnlock() {
             const lockScreen = document.getElementById('lock-screen');
             const desktopEnv = document.getElementById('desktop-environment');
-            const topBar = document.getElementById('top-bar');
             const dock = document.getElementById('dock');
 
             lockScreen.style.transform = 'translateY(-100%)';
@@ -789,7 +785,6 @@
             desktopEnv.classList.add('opacity-100');
             
             setTimeout(() => {
-                topBar.style.transform = 'translateY(0)';
                 dock.style.transform = 'translateY(0)';
                 isLocked = false;
             }, 150);
@@ -798,11 +793,9 @@
         function lockSystem() {
             closeAllMenus();
             const lockScreen = document.getElementById('lock-screen');
-            const topBar = document.getElementById('top-bar');
             const dock = document.getElementById('dock');
             const pwdContainer = document.getElementById('password-container');
 
-            topBar.style.transform = 'translateY(-100%)';
             dock.style.transform = 'translateY(100px)';
 
             setTimeout(() => {
@@ -819,7 +812,6 @@
 
             const restartScreen = document.getElementById('restart-screen');
             const restartSpinner = document.getElementById('restart-spinner');
-            const restartText = document.getElementById('restart-text');
 
             if (isDarkMode) {
                 restartScreen.className = "absolute inset-0 z-50 bg-black text-white flex flex-col items-center justify-center transition-opacity duration-700";
@@ -864,50 +856,60 @@
             triggerRestartSequence(true);
         }
 
-        // Dock & Start Menu Rendering
+        function showToast(msg) {
+            const toast = document.getElementById('toast-notification');
+            const msgEl = document.getElementById('toast-msg');
+            msgEl.innerText = msg;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3500);
+        }
+
+        // ChromeOS Shelf (Dock) Rendering
         function renderDock() {
             const dock = document.getElementById('dock');
             dock.innerHTML = '';
-            dock.className = "glass-dock px-4 py-2.5 rounded-3xl flex items-center justify-center space-x-3 transform translate-y-24 transition-transform duration-500 cubic-bezier(0.175, 0.885, 0.32, 1.275)";
 
-            // 1. All Apps Button
+            const leftContainer = document.createElement('div');
+            leftContainer.className = 'flex items-center space-x-1';
+
             const allAppsBtn = document.createElement('button');
-            allAppsBtn.className = 'dock-item relative group p-2 rounded-2xl hover:bg-black/15 transition flex flex-col items-center justify-center';
+            allAppsBtn.className = 'dock-item relative group';
             allAppsBtn.onclick = (e) => toggleStartMenu(e);
             allAppsBtn.innerHTML = `
-                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-500 to-blue-600 flex items-center justify-center text-white text-xl shadow-lg">
-                    <i class="fa-solid fa-bars"></i>
+                <div class="w-10 h-10 rounded-full flex items-center justify-center ${isDarkMode ? 'text-white' : 'text-slate-900'} text-lg">
+                    <i class="fa-solid fa-circle-dot"></i>
                 </div>
-                <span class="absolute -top-10 bg-black/80 backdrop-blur-md text-white text-[11px] px-2.5 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap">All Apps</span>
-                <div class="w-1.5 h-1.5 ${isDarkMode ? 'bg-white' : 'bg-slate-900'} rounded-full mt-1 ${activeMenuId === 'start' ? 'opacity-100' : 'opacity-0'} transition-opacity"></div>
+                <span class="absolute -top-10 bg-black/80 backdrop-blur-md text-white text-[11px] px-2.5 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md">All Apps</span>
             `;
-            dock.appendChild(allAppsBtn);
+            leftContainer.appendChild(allAppsBtn);
 
-            // 2. Search Apps Button
             const searchAppsBtn = document.createElement('button');
-            searchAppsBtn.className = 'dock-item relative group p-2 rounded-2xl hover:bg-black/15 transition flex flex-col items-center justify-center';
+            searchAppsBtn.className = 'dock-item relative group';
             searchAppsBtn.onclick = (e) => toggleSearchAppsMenu(e);
             searchAppsBtn.innerHTML = `
-                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-cyan-500 to-teal-600 flex items-center justify-center text-white text-xl shadow-lg">
+                <div class="w-10 h-10 rounded-full flex items-center justify-center ${isDarkMode ? 'text-white' : 'text-slate-900'} text-lg">
                     <i class="fa-solid fa-magnifying-glass"></i>
                 </div>
-                <span class="absolute -top-10 bg-black/80 backdrop-blur-md text-white text-[11px] px-2.5 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap">Search Apps</span>
-                <div class="w-1.5 h-1.5 ${isDarkMode ? 'bg-white' : 'bg-slate-900'} rounded-full mt-1 ${activeMenuId === 'search' ? 'opacity-100' : 'opacity-0'} transition-opacity"></div>
+                <span class="absolute -top-10 bg-black/80 backdrop-blur-md text-white text-[11px] px-2.5 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md">Search Apps</span>
             `;
-            dock.appendChild(searchAppsBtn);
+            leftContainer.appendChild(searchAppsBtn);
 
-            const divider = document.createElement('div');
-            divider.className = 'w-[1px] h-8 bg-black/15 my-auto mx-1';
-            dock.appendChild(divider);
+            const divider1 = document.createElement('div');
+            divider1.className = `w-[1px] h-6 my-auto mx-1.5 ${isDarkMode ? 'bg-white/20' : 'bg-black/20'}`;
+            leftContainer.appendChild(divider1);
+            dock.appendChild(leftContainer);
 
-            // Ensure pinned apps are in dockOrder
+            const centerAppsContainer = document.createElement('div');
+            centerAppsContainer.className = 'flex items-center space-x-2 absolute left-1/2 -translate-x-1/2';
+
             Object.keys(systemApps).forEach(appId => {
                 if (systemApps[appId].pinned && !dockOrder.includes(appId)) {
                     dockOrder.push(appId);
                 }
             });
 
-            // Build active dock list: Pinned apps + open unpinned apps on the right
             let activeDockIds = dockOrder.filter(appId => systemApps[appId] && systemApps[appId].pinned);
             Object.keys(openWindows).forEach(appId => {
                 if (!activeDockIds.includes(appId) && systemApps[appId]) {
@@ -919,7 +921,7 @@
                 const app = systemApps[appId];
                 if (!app) return;
                 const btn = document.createElement('button');
-                btn.className = 'dock-item relative group p-2 rounded-2xl hover:bg-black/15 transition flex flex-col items-center justify-center';
+                btn.className = 'dock-item relative group';
                 
                 btn.draggable = true;
                 btn.ondragstart = (e) => {
@@ -944,18 +946,38 @@
                 btn.onclick = () => openApp(appId);
                 btn.oncontextmenu = (e) => showContextMenu(e, appId);
 
-                let iconBox = `<div class="w-12 h-12 rounded-2xl bg-gradient-to-tr ${app.gradient || 'from-indigo-600 to-violet-500'} flex items-center justify-center text-white text-2xl shadow-lg"><i class="fa-solid ${app.icon || 'fa-globe'}"></i></div>`;
-                if (app.isCustom && app.customIcon) {
-                    iconBox = `<div class="w-12 h-12 rounded-2xl flex items-center justify-center bg-white/45 shadow-lg"><img src="${app.customIcon}" class="w-7 h-7 object-contain rounded-lg"></div>`;
+                let iconBox = '';
+                if (appId === 'web_tiktok' || appId === 'web_github' || appId === 'web_wiki') {
+                    iconBox = `<div class="w-10 h-10 rounded-full flex items-center justify-center bg-white shadow-md overflow-hidden"><img src="${app.customIcon}" class="w-8 h-8 object-cover scale-125"></div>`;
+                } else if (app.isCustom && app.customIcon) {
+                    iconBox = `<div class="w-10 h-10 rounded-full flex items-center justify-center bg-white/45 shadow-md overflow-hidden"><img src="${app.customIcon}" class="w-6 h-6 object-contain"></div>`;
+                } else {
+                    iconBox = `<div class="w-10 h-10 rounded-full bg-gradient-to-tr ${app.gradient || 'from-indigo-600 to-violet-500'} flex items-center justify-center text-white text-xl shadow-md"><i class="fa-solid ${app.icon || 'fa-globe'}"></i></div>`;
                 }
+
+                const isOpen = openWindows[appId] ? true : false;
+                const indicatorLine = `<div class="absolute bottom-0 w-3 h-0.5 ${isDarkMode ? 'bg-white' : 'bg-slate-900'} rounded-full ${isOpen ? 'opacity-100' : 'opacity-0'} transition-opacity"></div>`;
 
                 btn.innerHTML = `
                     ${iconBox}
-                    <span class="absolute -top-10 bg-black/80 backdrop-blur-md text-white text-[11px] px-2.5 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap">${app.name}</span>
-                    <div id="dot-${appId}" class="w-1.5 h-1.5 ${isDarkMode ? 'bg-white' : 'bg-slate-900'} rounded-full mt-1 ${openWindows[appId] ? 'opacity-100' : 'opacity-0'} transition-opacity"></div>
+                    <span class="absolute -top-10 bg-black/80 backdrop-blur-md text-white text-[11px] px-2.5 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md">${app.name}</span>
+                    ${indicatorLine}
                 `;
-                dock.appendChild(btn);
+                centerAppsContainer.appendChild(btn);
             });
+            dock.appendChild(centerAppsContainer);
+
+            const rightTray = document.createElement('div');
+            rightTray.className = `flex items-center space-x-3 px-3 py-1.5 rounded-2xl ${isDarkMode ? 'hover:bg-white/10' : 'hover:bg-black/10'} cursor-pointer text-xs font-medium transition`;
+            rightTray.innerHTML = `
+                <i class="fa-solid fa-wifi text-xs"></i>
+                <div id="dock-battery-status" class="flex items-center space-x-1.5">
+                    <span id="dock-battery-level">100%</span>
+                    <i id="dock-battery-icon" class="fa-solid fa-battery-full text-sm"></i>
+                </div>
+                <div id="dock-clock" class="font-semibold tracking-wide">12:00 PM</div>
+            `;
+            dock.appendChild(rightTray);
         }
 
         function renderStartMenu() {
@@ -969,9 +991,9 @@
                 item.className = 'flex items-center space-x-2.5 p-2 rounded-xl hover:bg-black/5 cursor-pointer transition';
                 item.onclick = () => { closeAllMenus(); openApp(appId); };
 
-                let iconBox = `<div class="w-7 h-7 rounded-lg bg-gradient-to-tr ${app.gradient || 'from-indigo-500 to-purple-600'} flex items-center justify-center text-white text-xs"><i class="fa-solid ${app.icon || 'fa-globe'}"></i></div>`;
+                let iconBox = `<div class="w-7 h-7 rounded-full bg-gradient-to-tr ${app.gradient || 'from-indigo-500 to-purple-600'} flex items-center justify-center text-white text-xs"><i class="fa-solid ${app.icon || 'fa-globe'}"></i></div>`;
                 if (app.isCustom && app.customIcon) {
-                    iconBox = `<div class="w-7 h-7 rounded-lg flex items-center justify-center bg-white/40"><img src="${app.customIcon}" class="w-4 h-4 object-contain"></div>`;
+                    iconBox = `<div class="w-7 h-7 rounded-full flex items-center justify-center bg-white/40 overflow-hidden"><img src="${app.customIcon}" class="w-4 h-4 object-contain"></div>`;
                 }
 
                 item.innerHTML = `
@@ -993,7 +1015,7 @@
                 groupsContainer.appendChild(gDiv);
 
                 const grid = gDiv.querySelector(`#tile-group-${gIdx}`);
-                group.apps.forEach((appId, appIdx) => {
+                group.apps.forEach((appId) => {
                     const app = systemApps[appId];
                     if (!app) return;
                     const tile = document.createElement('div');
@@ -1024,9 +1046,9 @@
                     tile.onclick = () => { closeAllMenus(); openApp(appId); };
                     tile.oncontextmenu = (e) => showContextMenu(e, appId);
 
-                    let iconBox = `<div class="w-9 h-9 rounded-xl bg-gradient-to-tr ${app.gradient || 'from-indigo-500 to-purple-600'} flex items-center justify-center text-white text-base shadow-sm mb-1.5"><i class="fa-solid ${app.icon || 'fa-globe'}"></i></div>`;
+                    let iconBox = `<div class="w-9 h-9 rounded-full bg-gradient-to-tr ${app.gradient || 'from-indigo-500 to-purple-600'} flex items-center justify-center text-white text-base shadow-sm mb-1.5"><i class="fa-solid ${app.icon || 'fa-globe'}"></i></div>`;
                     if (app.isCustom && app.customIcon) {
-                        iconBox = `<div class="w-9 h-9 rounded-xl flex items-center justify-center bg-white/40 shadow-sm mb-1.5"><img src="${app.customIcon}" class="w-5 h-5 object-contain"></div>`;
+                        iconBox = `<div class="w-9 h-9 rounded-full flex items-center justify-center bg-white/40 shadow-sm mb-1.5 overflow-hidden"><img src="${app.customIcon}" class="w-5 h-5 object-contain"></div>`;
                     }
 
                     tile.innerHTML = `
@@ -1035,37 +1057,6 @@
                     `;
                     grid.appendChild(tile);
                 });
-            });
-        }
-
-        function renderDragonFlyout() {
-            const grid = document.getElementById('dragon-grid');
-            grid.innerHTML = '';
-            Object.keys(systemApps).forEach(appId => {
-                const app = systemApps[appId];
-                const btn = document.createElement('button');
-                btn.className = 'app-card flex flex-col items-center p-2.5 rounded-xl hover:bg-black/5 transition group';
-                btn.onclick = () => { closeAllMenus(); openApp(appId); };
-
-                let iconBox = `<div class="w-11 h-11 rounded-xl bg-gradient-to-tr ${app.gradient || 'from-indigo-500 to-purple-600'} flex items-center justify-center text-white text-lg shadow-md group-hover:scale-105 transition"><i class="fa-solid ${app.icon || 'fa-globe'}"></i></div>`;
-                if (app.isCustom && app.customIcon) {
-                    iconBox = `<div class="w-11 h-11 rounded-xl flex items-center justify-center bg-white/40 shadow-md group-hover:scale-105 transition"><img src="${app.customIcon}" class="w-6 h-6 object-contain"></div>`;
-                }
-
-                btn.innerHTML = `
-                    ${iconBox}
-                    <span class="text-[11px] font-medium mt-1.5 truncate w-full text-center">${app.name}</span>
-                `;
-                grid.appendChild(btn);
-            });
-        }
-
-        function filterDragonFlyoutApps() {
-            const q = document.getElementById('dragon-search').value.toLowerCase();
-            const cards = document.querySelectorAll('#dragon-grid .app-card');
-            cards.forEach(card => {
-                const name = card.querySelector('span').innerText.toLowerCase();
-                card.style.display = name.includes(q) ? 'flex' : 'none';
             });
         }
 
@@ -1092,19 +1083,6 @@
                         iframe.src = targetUrl;
                     }
                 }, 200);
-            }
-        }
-
-        // Toggle Menus
-        function toggleDragonFlyout(e) {
-            if (e) e.stopPropagation();
-            const menu = document.getElementById('dragon-flyout-menu');
-            const isOpened = !menu.classList.contains('opacity-0');
-            closeAllMenus();
-
-            if (!isOpened) {
-                menu.classList.remove('opacity-0', 'pointer-events-none', '-translate-y-4');
-                menu.classList.add('opacity-100', 'pointer-events-auto', 'translate-y-0');
             }
         }
 
@@ -1146,17 +1124,12 @@
         }
 
         function closeAllMenus() {
-            const dragonMenu = document.getElementById('dragon-flyout-menu');
             const allAppsMenu = document.getElementById('all-apps-menu');
             const searchMenu = document.getElementById('search-apps-menu');
 
             let changed = activeMenuId !== null;
             activeMenuId = null;
 
-            if (dragonMenu) {
-                dragonMenu.classList.add('opacity-0', 'pointer-events-none', '-translate-y-4');
-                dragonMenu.classList.remove('opacity-100', 'pointer-events-auto', 'translate-y-0');
-            }
             if (allAppsMenu) {
                 allAppsMenu.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
                 allAppsMenu.classList.remove('opacity-100', 'pointer-events-auto', 'translate-y-0');
@@ -1179,9 +1152,9 @@
                     btn.className = 'flex flex-col items-center p-2.5 rounded-xl hover:bg-black/5 transition group';
                     btn.onclick = () => { closeAllMenus(); openApp(appId); };
 
-                    let iconBox = `<div class="w-11 h-11 rounded-xl bg-gradient-to-tr ${app.gradient || 'from-indigo-500 to-purple-600'} flex items-center justify-center text-white text-lg shadow-md group-hover:scale-105 transition"><i class="fa-solid ${app.icon || 'fa-globe'}"></i></div>`;
+                    let iconBox = `<div class="w-11 h-11 rounded-full bg-gradient-to-tr ${app.gradient || 'from-indigo-500 to-purple-600'} flex items-center justify-center text-white text-lg shadow-md group-hover:scale-105 transition"><i class="fa-solid ${app.icon || 'fa-globe'}"></i></div>`;
                     if (app.isCustom && app.customIcon) {
-                        iconBox = `<div class="w-11 h-11 rounded-xl flex items-center justify-center bg-white/40 shadow-md group-hover:scale-105 transition"><img src="${app.customIcon}" class="w-6 h-6 object-contain"></div>`;
+                        iconBox = `<div class="w-11 h-11 rounded-full flex items-center justify-center bg-white/40 shadow-md group-hover:scale-105 transition overflow-hidden"><img src="${app.customIcon}" class="w-6 h-6 object-contain"></div>`;
                     }
 
                     btn.innerHTML = `
@@ -1198,7 +1171,6 @@
             renderSearchAppsGrid(q);
         }
 
-        // Context Menu Handler
         function showContextMenu(e, appId) {
             e.preventDefault();
             e.stopPropagation();
@@ -1248,7 +1220,6 @@
             hideContextMenu();
         }
 
-        // Clock & Battery
         function initClock() {
             function updateTime() {
                 const now = new Date();
@@ -1257,7 +1228,10 @@
                 const ampm = hours >= 12 ? 'PM' : 'AM';
                 const formattedHours = hours % 12 || 12;
 
-                document.getElementById('top-clock').innerText = `${formattedHours}:${minutes} ${ampm}`;
+                const timeStr = `${formattedHours}:${minutes} ${ampm}`;
+                if (document.getElementById('dock-clock')) {
+                    document.getElementById('dock-clock').innerText = timeStr;
+                }
                 document.getElementById('lock-time').innerText = `${formattedHours}:${minutes}`;
                 document.getElementById('lock-date').innerText = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
             }
@@ -1270,21 +1244,29 @@
                 navigator.getBattery().then(battery => {
                     function updateBatteryInfo() {
                         const level = Math.round(battery.level * 100);
-                        document.getElementById('battery-level').innerText = `${level}%`;
-                        const icon = document.getElementById('battery-icon');
-                        if (battery.charging) icon.className = "fa-solid fa-battery-charging text-green-500 text-sm";
-                        else if (level <= 20) icon.className = "fa-solid fa-battery-quarter text-red-500 text-sm";
-                        else if (level <= 50) icon.className = "fa-solid fa-battery-half text-yellow-500 text-sm";
-                        else icon.className = "fa-solid fa-battery-full text-sm";
+                        if (document.getElementById('dock-battery-level')) {
+                            document.getElementById('dock-battery-level').innerText = `${level}%`;
+                        }
+
+                        const icon = document.getElementById('dock-battery-icon');
+                        if (icon) {
+                            if (battery.charging) icon.className = "fa-solid fa-battery-charging text-green-500 text-sm";
+                            else if (level <= 20) icon.className = "fa-solid fa-battery-quarter text-red-500 text-sm";
+                            else if (level <= 50) icon.className = "fa-solid fa-battery-half text-yellow-500 text-sm";
+                            else icon.className = "fa-solid fa-battery-full text-sm";
+                        }
                     }
                     updateBatteryInfo();
                     battery.addEventListener('levelchange', updateBatteryInfo);
                     battery.addEventListener('chargingchange', updateBatteryInfo);
-                }).catch(() => { document.getElementById('battery-level').innerText = "100%"; });
+                }).catch(() => { 
+                    if (document.getElementById('dock-battery-level')) {
+                        document.getElementById('dock-battery-level').innerText = "100%"; 
+                    }
+                });
             }
         }
 
-        // Window Management
         function openApp(appId) {
             if (openWindows[appId]) {
                 focusWindow(appId);
@@ -1315,9 +1297,11 @@
 
             const appObj = systemApps[appId] || { name: 'App' };
 
-            const maximizeBtn = (appId === 'calculator' || appId === 'about')
-                ? `<button class="w-3 h-3 rounded-full bg-gray-400 opacity-40 cursor-not-allowed flex items-center justify-center text-[8px]"></button>`
-                : `<button onclick="maximizeApp('${appId}')" class="w-3 h-3 rounded-full bg-green-500 hover:bg-green-600 transition flex items-center justify-center text-[8px] text-green-900 group"><i class="fa-solid fa-expand opacity-0 group-hover:opacity-100"></i></button>`;
+            const windowControls = `<div class="flex items-center space-x-2">
+                 <button onclick="closeApp('${appId}')" class="w-7 h-7 rounded-lg hover:bg-red-500 hover:text-white transition flex items-center justify-center text-xs"><i class="fa-solid fa-xmark"></i></button>
+                 <button onclick="maximizeApp('${appId}')" class="w-7 h-7 rounded-lg hover:bg-black/10 flex items-center justify-center text-xs"><i class="fa-regular fa-square"></i></button>
+                 <button onclick="minimizeApp('${appId}')" class="w-7 h-7 rounded-lg hover:bg-black/10 flex items-center justify-center text-xs"><i class="fa-solid fa-minus"></i></button>
+               </div>`;
 
             let headerMiddleNav = `<span class="ml-3 text-xs font-semibold tracking-wide">${appObj.name}</span>`;
             if (appId === 'browser') {
@@ -1343,21 +1327,17 @@
             }
 
             win.innerHTML = `
-                <div class="window-header h-10 px-4 bg-black/5 backdrop-blur-md border-b border-black/10 flex items-center justify-between cursor-move select-none">
-                    <div class="flex items-center space-x-2">
-                        <button onclick="closeApp('${appId}')" class="w-3 h-3 rounded-full bg-red-500 hover:bg-red-600 transition flex items-center justify-center text-[8px] text-red-900 group"><i class="fa-solid fa-xmark opacity-0 group-hover:opacity-100"></i></button>
-                        <button onclick="minimizeApp('${appId}')" class="w-3 h-3 rounded-full bg-yellow-500 hover:bg-yellow-600 transition flex items-center justify-center text-[8px] text-yellow-900 group"><i class="fa-solid fa-minus opacity-0 group-hover:opacity-100"></i></button>
-                        ${maximizeBtn}
+                <div class="window-header h-10 px-4 bg-black/5 backdrop-blur-md border-b border-black/10 flex items-center justify-start cursor-move select-none">
+                    ${windowControls}
+                    <div class="flex items-center space-x-2 flex-1 justify-start">
+                        ${headerMiddleNav}
                     </div>
-                    ${headerMiddleNav}
-                    <div></div>
                 </div>
                 <div id="content-${appId}" class="flex-1 overflow-auto relative"></div>
             `;
 
             container.appendChild(win);
             openWindows[appId] = { element: win, minimized: false, maximized: false };
-            document.getElementById('active-app-name').innerText = appObj.name;
             
             renderDock();
             makeDraggable(win, win.querySelector('.window-header'));
@@ -1367,8 +1347,6 @@
         function focusWindow(appId) {
             if (openWindows[appId]) {
                 openWindows[appId].element.style.zIndex = ++highestZIndex;
-                const appObj = systemApps[appId] || { name: 'App' };
-                document.getElementById('active-app-name').innerText = appObj.name;
             }
         }
 
@@ -1377,7 +1355,6 @@
                 openWindows[appId].element.remove();
                 delete openWindows[appId];
                 renderDock();
-                document.getElementById('active-app-name').innerText = 'Desktop';
             }
         }
 
@@ -1405,8 +1382,8 @@
             if (!win.maximized) {
                 win.oldStyle = { width: win.element.style.width, height: win.element.style.height, top: win.element.style.top, left: win.element.style.left };
                 win.element.style.width = '100%';
-                win.element.style.height = 'calc(100% - 32px)';
-                win.element.style.top = '32px';
+                win.element.style.height = 'calc(100% - 60px)';
+                win.element.style.top = '0px';
                 win.element.style.left = '0px';
                 win.maximized = true;
             } else {
@@ -1453,20 +1430,20 @@
             const app = systemApps[appId];
 
             if (app && app.isCustom) {
-                target.innerHTML = `<div class="flex-1 h-full bg-white"><iframe src="${app.url}" class="w-full h-full border-none"></iframe></div>`;
+                target.innerHTML = `<div class="flex-1 h-full bg-transparent"><iframe src="${app.url}" class="w-full h-full border-none"></iframe></div>`;
                 return;
             }
             
             if (appId === 'browser') {
-                target.innerHTML = `<div class="flex-1 h-full bg-white"><iframe id="browser-iframe" src="https://www.google.com/search?igu=1" class="w-full h-full border-none"></iframe></div>`;
+                target.innerHTML = `<div class="flex-1 h-full bg-transparent"><iframe id="browser-iframe" src="https://www.google.com/search?igu=1" class="w-full h-full border-none"></iframe></div>`;
             } else if (appId === 'settings') {
                 renderSettingsApp(target);
             } else if (appId === 'calendar') {
                 renderCalendarApp(target);
             } else if (appId === 'notes') {
-                target.innerHTML = `<div class="p-4 h-full flex flex-col"><textarea class="w-full flex-1 bg-white text-slate-900 border border-black/10 rounded-xl p-4 text-sm focus:outline-none resize-none font-mono" placeholder="Type your DragonOS notes here..."></textarea></div>`;
+                target.innerHTML = `<div class="p-4 h-full flex flex-col"><textarea class="w-full flex-1 bg-transparent border border-black/10 rounded-xl p-4 text-sm focus:outline-none resize-none font-mono" placeholder="Type your DragonOS notes here..."></textarea></div>`;
             } else if (appId === 'terminal') {
-                target.innerHTML = `<div class="p-4 h-full bg-slate-950 font-mono text-green-400 text-xs flex flex-col"><p class="text-white/60 mb-2">DragonOS Terminal v2.0.0</p><div class="flex items-center space-x-2"><span class="text-indigo-400">user@dragon-os</span>:<span class="text-blue-400">~</span>$&nbsp;<input type="text" class="bg-transparent focus:outline-none text-green-400 flex-1 font-mono"></div></div>`;
+                target.innerHTML = `<div class="p-4 h-full bg-slate-950/80 font-mono text-green-400 text-xs flex flex-col"><p class="text-white/60 mb-2">DragonOS Terminal v3.0.0</p><div class="flex items-center space-x-2"><span class="text-indigo-400">user@dragon-os</span>:<span class="text-blue-400">~</span>$&nbsp;<input type="text" class="bg-transparent focus:outline-none text-green-400 flex-1 font-mono"></div></div>`;
             } else if (appId === 'about') {
                 const currentLogo = isDarkMode ? LOGOS.white : LOGOS.black;
                 target.innerHTML = `
@@ -1474,7 +1451,7 @@
                         <div class="flex items-center space-x-4">
                             <img src="${currentLogo}" class="w-16 h-16 object-contain">
                             <div class="text-left">
-                                <h2 class="text-xl font-bold tracking-wide">DragonOS 2.0</h2>
+                                <h2 class="text-xl font-bold tracking-wide">DragonOS 3.0</h2>
                                 <div class="flex items-center space-x-1.5 mt-1">
                                     <i class="fa-solid fa-circle-check text-blue-500 text-xs"></i>
                                     <span class="text-xs font-medium opacity-80">DragonOS is up to date</span>
@@ -1491,7 +1468,7 @@
                 calcExpression = '';
                 target.innerHTML = `
                     <div class="p-4 h-full flex flex-col items-center justify-between">
-                        <div id="calc-display" class="w-full bg-white text-slate-900 p-3 rounded-xl text-right text-2xl font-mono border border-black/10 overflow-x-auto min-h-[50px] flex items-center justify-end">0</div>
+                        <div id="calc-display" class="w-full bg-black/10 p-3 rounded-xl text-right text-2xl font-mono border border-black/10 overflow-x-auto min-h-[50px] flex items-center justify-end">0</div>
                         <div class="grid grid-cols-4 gap-2 w-full text-center mt-2">
                             <button onclick="calcPress('C')" class="p-3 bg-black/10 rounded-xl hover:bg-black/20 font-bold text-xs">C</button>
                             <button onclick="calcPress('(')" class="p-3 bg-black/10 rounded-xl hover:bg-black/20 font-bold text-xs">(</button>
@@ -1541,15 +1518,15 @@
                     <div class="bg-black/5 p-4 rounded-2xl border border-black/10 space-y-4">
                         <div>
                             <label class="block text-xs font-semibold mb-1">Application Title</label>
-                            <input type="text" id="install-app-title" placeholder="My Web App" class="w-full px-3 py-2 rounded-xl bg-white text-slate-900 border border-black/10 text-xs focus:outline-none">
+                            <input type="text" id="install-app-title" placeholder="My Web App" class="w-full px-3 py-2 rounded-xl bg-transparent border border-black/10 text-xs focus:outline-none">
                         </div>
                         <div>
                             <label class="block text-xs font-semibold mb-1">Web URL</label>
-                            <input type="text" id="install-app-url" placeholder="https://example.com" class="w-full px-3 py-2 rounded-xl bg-white text-slate-900 border border-black/10 text-xs focus:outline-none">
+                            <input type="text" id="install-app-url" placeholder="https://example.com" class="w-full px-3 py-2 rounded-xl bg-transparent border border-black/10 text-xs focus:outline-none">
                         </div>
                         <div>
                             <label class="block text-xs font-semibold mb-1">Upload Custom Icon (Optional)</label>
-                            <input type="file" id="install-app-icon" accept="image/*" class="text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500 cursor-pointer">
+                            <input type="file" id="install-app-icon" accept="image/*" class="text-xs file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500 cursor-pointer">
                         </div>
                         <button onclick="installCustomApp()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold transition">
                             Install Web App
@@ -1585,7 +1562,6 @@
 
             renderDock();
             renderStartMenu();
-            renderDragonFlyout();
             saveToLocalStorage();
             closeApp('getapps');
             openApp(appId);
@@ -1636,7 +1612,7 @@
                         <div class="bg-black/5 p-4 rounded-2xl border border-black/10 flex flex-col space-y-3">
                             <label class="text-xs font-semibold opacity-80">Display Account Name</label>
                             <div class="flex space-x-2">
-                                <input type="text" id="settings-username-input" value="${username}" class="flex-1 px-4 py-2 rounded-xl bg-white text-slate-900 border border-black/20 text-xs focus:outline-none">
+                                <input type="text" id="settings-username-input" value="${username}" class="flex-1 px-4 py-2 rounded-xl bg-transparent border border-black/20 text-xs focus:outline-none">
                                 <button onclick="saveAccountName()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-xs font-semibold text-white">Update Name</button>
                             </div>
                             <span id="name-saved-msg" class="text-xs text-green-600 opacity-0 transition">Account name updated!</span>
@@ -1676,7 +1652,7 @@
                         <div class="bg-black/5 p-4 rounded-2xl border border-black/10 flex flex-col space-y-3">
                             <label class="text-xs opacity-80">Set Lock Screen Password</label>
                             <div class="flex space-x-2">
-                                <input type="password" id="settings-pwd-input" value="${systemPassword}" placeholder="Enter new password" class="flex-1 px-4 py-2 rounded-xl bg-white text-slate-900 border border-black/20 text-xs focus:outline-none">
+                                <input type="password" id="settings-pwd-input" value="${systemPassword}" placeholder="Enter new password" class="flex-1 px-4 py-2 rounded-xl bg-transparent border border-black/20 text-xs focus:outline-none">
                                 <button onclick="savePassword()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-xs font-semibold text-white">Save</button>
                                 <button onclick="removePassword()" class="px-4 py-2 bg-red-600/30 hover:bg-red-600/50 text-red-700 rounded-xl text-xs font-semibold">Remove</button>
                             </div>
@@ -1713,11 +1689,21 @@
         }
 
         function toggleDarkMode(enableDark) {
+            if (!enableDark && activeWallpaper.url === DEFAULT_WALLPAPER_URL) {
+                showToast("Light mode is unavailable in this wallpaper.");
+                return;
+            }
+
             isDarkMode = enableDark;
+            if (isDarkMode) {
+                document.body.classList.remove('light-mode');
+            } else {
+                document.body.classList.add('light-mode');
+            }
+
             applySystemThemeStyles();
             renderDock();
             renderStartMenu();
-            renderDragonFlyout();
             saveToLocalStorage();
             const settingsTarget = document.getElementById('content-settings');
             if (settingsTarget) renderSettingsApp(settingsTarget);
@@ -1727,45 +1713,46 @@
         function applySystemThemeStyles() {
             const allAppsMenu = document.getElementById('all-apps-menu');
             const searchAppsMenu = document.getElementById('search-apps-menu');
-            const dragonFlyout = document.getElementById('dragon-flyout-menu');
             const dragonUserLbl = document.getElementById('dragon-username-lbl');
 
             if (isDarkMode) {
-                allAppsMenu.className = "fixed bottom-28 left-1/2 -translate-x-1/2 z-40 w-[680px] h-[520px] glass-panel-dark text-white rounded-2xl p-5 flex shadow-2xl transition-all duration-300 transform translate-y-4 opacity-0 pointer-events-none";
-                searchAppsMenu.className = "fixed bottom-28 left-1/2 -translate-x-1/2 z-40 w-80 glass-panel-dark text-white rounded-2xl p-4 flex flex-col shadow-2xl transition-all duration-300 transform translate-y-4 opacity-0 pointer-events-none";
-                dragonFlyout.className = "fixed top-10 left-3 z-40 w-80 glass-panel-dark text-white rounded-2xl p-4 flex flex-col shadow-2xl transition-all duration-300 transform -translate-y-4 opacity-0 pointer-events-none";
+                allAppsMenu.className = "fixed bottom-16 left-3 z-40 w-[620px] h-[480px] glass-panel-dark text-white rounded-2xl p-5 flex shadow-2xl transition-all duration-300 transform translate-y-4 opacity-0 pointer-events-none mb-3";
+                searchAppsMenu.className = "fixed bottom-16 left-3 z-40 w-80 glass-panel-dark text-white rounded-2xl p-4 flex flex-col shadow-2xl transition-all duration-300 transform translate-y-4 opacity-0 pointer-events-none mb-3";
                 if (dragonUserLbl) dragonUserLbl.className = "text-xs font-semibold text-white transition-colors";
             } else {
-                allAppsMenu.className = "fixed bottom-28 left-1/2 -translate-x-1/2 z-40 w-[680px] h-[520px] glass-menu-light text-slate-900 rounded-2xl p-5 flex shadow-2xl transition-all duration-300 transform translate-y-4 opacity-0 pointer-events-none";
-                searchAppsMenu.className = "fixed bottom-28 left-1/2 -translate-x-1/2 z-40 w-80 glass-menu-light text-slate-900 rounded-2xl p-4 flex flex-col shadow-2xl transition-all duration-300 transform translate-y-4 opacity-0 pointer-events-none";
-                dragonFlyout.className = "fixed top-10 left-3 z-40 w-80 glass-menu-light text-slate-900 rounded-2xl p-4 flex flex-col shadow-2xl transition-all duration-300 transform -translate-y-4 opacity-0 pointer-events-none";
+                allAppsMenu.className = "fixed bottom-16 left-3 z-40 w-[620px] h-[480px] glass-menu-light text-slate-900 rounded-2xl p-5 flex shadow-2xl transition-all duration-300 transform translate-y-4 opacity-0 pointer-events-none mb-3";
+                searchAppsMenu.className = "fixed bottom-16 left-3 z-40 w-80 glass-menu-light text-slate-900 rounded-2xl p-4 flex flex-col shadow-2xl transition-all duration-300 transform translate-y-4 opacity-0 pointer-events-none mb-3";
                 if (dragonUserLbl) dragonUserLbl.className = "text-xs font-semibold text-slate-800 transition-colors";
             }
 
             Object.keys(openWindows).forEach(appId => {
                 const win = openWindows[appId].element;
-                if (isDarkMode) win.classList.remove('glass-window-light');
-                else win.classList.add('glass-window-light');
+                if (isDarkMode) {
+                    win.classList.remove('glass-window-light');
+                    win.classList.add('glass-window');
+                } else {
+                    win.classList.remove('glass-window');
+                    win.classList.add('glass-window-light');
+                }
             });
         }
 
         function setWallpaper(key) {
             if (WALLPAPERS[key]) {
-                activeWallpaper = WALLPAPERS[key];
+                const newWp = WALLPAPERS[key];
+                
+                if (newWp.url === DEFAULT_WALLPAPER_URL && !isDarkMode) {
+                    isDarkMode = true;
+                    document.body.classList.remove('light-mode');
+                    showToast("Light mode is unavailable in this wallpaper. Dark mode enabled.");
+                }
+
+                activeWallpaper = newWp;
                 const bgContainer = document.getElementById('wallpaper-container');
                 bgContainer.style.backgroundImage = `url('${activeWallpaper.url}')`;
 
-                const topBar = document.getElementById('top-bar');
-                const topLogo = document.getElementById('top-bar-logo');
-
-                if (activeWallpaper.isDark) {
-                    topBar.classList.remove('dark-text');
-                    topLogo.src = LOGOS.white;
-                } else {
-                    topBar.classList.add('dark-text');
-                    topLogo.src = LOGOS.black;
-                }
                 saveToLocalStorage();
+                renderDock();
             }
         }
 
